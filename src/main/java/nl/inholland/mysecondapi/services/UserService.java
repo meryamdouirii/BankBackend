@@ -1,0 +1,18 @@
+package nl.inholland.mysecondapi.services;
+
+import nl.inholland.mysecondapi.models.User;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface UserService {
+    List<User> getAllUsers();
+    Optional<User> getUserById(Long id);
+
+    User createUser(User user);
+
+    User updateUser(Long id, User user);
+
+    //dont actually delete user, set status to inactive
+    void deleteUser(Long id);
+}
