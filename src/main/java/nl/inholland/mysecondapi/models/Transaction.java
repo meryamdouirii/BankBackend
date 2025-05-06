@@ -24,8 +24,5 @@ public class Transaction {
     private BigDecimal amount;
     private LocalDateTime dateTime;
 
-    @ManyToOne
-    @JsonBackReference
-    private Atm atm;
 
 }
