@@ -26,7 +26,7 @@ public class Account {
     @GeneratedValue
     private Long id;
 
-    @ManyToMany(mappedBy = "accounts")
+    @ManyToMany(mappedBy = "accounts")//maak one to many
     private List<User> owners;
 
     private String IBAN;

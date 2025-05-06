@@ -25,7 +25,7 @@ public class User {
     private String lastName;
     private String email;
     private String phoneNumber;
-    private String password;
+    private String password;// add the role
 
     @ManyToMany
     @JsonBackReference

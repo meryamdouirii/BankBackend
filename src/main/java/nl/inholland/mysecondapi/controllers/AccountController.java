@@ -18,6 +18,17 @@ public class AccountController {
     @GetMapping
     public ResponseEntity<List<Account>> getAllAccounts() {return ResponseEntity.ok(this.accountService.getAllAcounts());}
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Account> getAccountById(@PathVariable Long id) {
+        //gebruik model maper
+        return accountService.getAccountById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<Account> createAccount(@RequestBody Account account) {return ResponseEntity.ok(this.accountService.createAccount(account));}
+
     @PutMapping("/{id}")
     public ResponseEntity<Account> updateAccount(@PathVariable Long id, @RequestBody Account account) {
         return ResponseEntity.ok(accountService.updateAccount(id,account));
