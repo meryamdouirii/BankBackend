@@ -36,27 +36,19 @@ public class MyApplicationRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         Atm testAtm = new Atm(null, BigDecimal.valueOf(10), "Test", "TestBank", null);
         atmService.createAtm(testAtm);
-        transactionService.createTransaction(new Transaction(null, BigDecimal.valueOf(20.39), LocalDateTime.now(), testAtm));
-        Account account = new Account();
-        account.setType(AccountType.CHECKING);
-        account.setStatus(AccountStatus.ACTIVE);
-        account.setAccountNumber("123456789");
-        account.setIBAN("IBAN123456789");
-        account.setBalance(BigDecimal.valueOf(1000));
-        account.setAccountLimit(BigDecimal.valueOf(500));
-        account.setCreatedAt(LocalDateTime.now());
-        account.setUpdatedAt(LocalDateTime.now());
-        accountService.createAccount(account);
+        Transaction testTransaction = new Transaction(null, BigDecimal.valueOf(20.39), LocalDateTime.now(), testAtm);
+        List<Transaction> transactions = new ArrayList<>();
+        transactions.add(testTransaction);
+        testAtm.setTransactions(transactions);
+        transactionService.createTransaction(testTransaction);
+
+        Account account = new Account(null,null,"IBAN123456789","123456789",BigDecimal.valueOf(1000),BigDecimal.valueOf(500),AccountType.CHECKING,AccountStatus.ACTIVE,LocalDateTime.now(),LocalDateTime.now());
         List<Account> accounts = new ArrayList<>();
         accounts.add(account);
-        User user = new User(null, "Manon", "Dekker", "manon@example.com", "0612345678", "Test", accounts);
+        User user = new User(null, "Manon", "Dekker", "manon@example.com", "0612345678", "Test",UserRole.CUSTOMER,accounts);
+        account.setOwner(user);
         userService.createUser(user);
-        List<User> owners = new ArrayList<>();
-        owners.add(user);
-        account.setOwners(owners);
-
-        userService.createUser(user);
-
+        accountService.createAccount(account);
 
     }
 }

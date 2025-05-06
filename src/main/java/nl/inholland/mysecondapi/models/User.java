@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import nl.inholland.mysecondapi.models.enums.UserRole;
 
 import java.util.List;
 
@@ -25,10 +26,10 @@ public class User {
     private String lastName;
     private String email;
     private String phoneNumber;
-    private String password;// add the role
+    private String password;
+    private UserRole role;
 
-    @ManyToMany
-    @JsonBackReference
+    @OneToMany(mappedBy="owner")
     private List<Account> accounts;
 
 
