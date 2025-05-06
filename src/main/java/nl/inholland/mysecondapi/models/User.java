@@ -1,5 +1,7 @@
 package nl.inholland.mysecondapi.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,6 +28,7 @@ public class User {
     private String password;
 
     @ManyToMany
+    @JsonBackReference
     private List<Account> accounts;
 
 
