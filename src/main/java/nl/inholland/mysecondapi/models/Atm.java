@@ -19,7 +19,7 @@ public class Atm {
 
     @Id
     @GeneratedValue
-    private int id;
+    private Long id;
 
     private BigDecimal balance;
     private String location;
