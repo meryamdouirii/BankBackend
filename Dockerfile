@@ -1,24 +1,20 @@
-FROM ubuntu:latest AS build
+# Gebruik een image met Maven én Java 17 al geïnstalleerd
+FROM maven:3.9.4-eclipse-temurin-17 AS build
 
-# Installeer Java en andere tools
-RUN apt-get update && \
-    apt-get install -y openjdk-19-jdk maven curl unzip git && \
-    apt-get clean
-
-# Zet werkdirectory
+# Zet werkdirectory binnen de container
 WORKDIR /app
 
-# Kopieer alle projectbestanden
+# Kopieer alle projectbestanden naar de container
 COPY . .
 
-# Geef rechten aan mvnw
+# Zorg dat mvnw uitvoerbaar is
 RUN chmod +x mvnw
 
-# Build de app (optioneel)
+# (Optioneel) Build de app zodat je weet of alles compileert
 RUN ./mvnw clean install -U
 
-# Zet poort open
+# Zet poort 8080 open (moet overeenkomen met application.properties)
 EXPOSE 8080
 
-# Start de app
+# Start de Spring Boot app
 ENTRYPOINT ["./mvnw", "spring-boot:run"]
