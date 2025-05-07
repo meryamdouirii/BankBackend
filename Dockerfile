@@ -1,20 +1,20 @@
-# Gebruik een image met Maven én Java 17 al geïnstalleerd
-FROM maven:3.9.4-eclipse-temurin-17 AS build
+# Gebruik Maven + Java 21 image
+FROM maven:3.9.4-eclipse-temurin-21 AS build
 
-# Zet werkdirectory binnen de container
+# Zet werkdirectory
 WORKDIR /app
 
-# Kopieer alle projectbestanden naar de container
+# Kopieer projectbestanden
 COPY . .
 
-# Zorg dat mvnw uitvoerbaar is
+# Geef uitvoerrechten aan mvnw
 RUN chmod +x mvnw
 
-# (Optioneel) Build de app zodat je weet of alles compileert
+# Build (optioneel, valideert je code)
 RUN ./mvnw clean install -U
 
-# Zet poort 8080 open (moet overeenkomen met application.properties)
+# Zet poort open
 EXPOSE 8080
 
-# Start de Spring Boot app
+# Start Spring Boot app
 ENTRYPOINT ["./mvnw", "spring-boot:run"]
