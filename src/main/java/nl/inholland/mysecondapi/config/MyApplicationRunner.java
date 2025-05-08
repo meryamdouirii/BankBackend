@@ -1,12 +1,10 @@
 package nl.inholland.mysecondapi.config;
 
 import nl.inholland.mysecondapi.models.Account;
-import nl.inholland.mysecondapi.models.Atm;
 import nl.inholland.mysecondapi.models.Transaction;
 import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.enums.*;
 import nl.inholland.mysecondapi.services.AccountService;
-import nl.inholland.mysecondapi.services.AtmService;
 import nl.inholland.mysecondapi.services.TransactionService;
 import nl.inholland.mysecondapi.services.UserService;
 import org.springframework.boot.ApplicationArguments;
