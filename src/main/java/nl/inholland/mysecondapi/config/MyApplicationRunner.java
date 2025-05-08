@@ -23,7 +23,7 @@ public class MyApplicationRunner implements ApplicationRunner {
     private final UserService userService;
     private final AccountService accountService;
 
-    public MyApplicationRunner(ransactionService transactionService, UserService userService, AccountService accountService) {
+    public MyApplicationRunner(TransactionService transactionService, UserService userService, AccountService accountService) {
         this.transactionService = transactionService;
         this.userService = userService;
         this.accountService = accountService;
