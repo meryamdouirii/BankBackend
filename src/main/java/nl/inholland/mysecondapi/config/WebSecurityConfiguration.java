@@ -33,7 +33,7 @@ public class WebSecurityConfiguration {
 // We need to do this to allow POST requests
         httpSecurity.csrf(csrf -> csrf.disable());
         httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/users/login").permitAll());
-        httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/atms").authenticated());
+        httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/atms").permitAll());
         httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/accounts").permitAll());
         httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/transactions").permitAll());
 
