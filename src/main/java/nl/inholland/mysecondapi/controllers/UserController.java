@@ -1,6 +1,8 @@
 package nl.inholland.mysecondapi.controllers;
 
 import nl.inholland.mysecondapi.models.User;
+import nl.inholland.mysecondapi.models.dto.LoginRequestDTO;
+import nl.inholland.mysecondapi.models.dto.LoginResponseDTO;
 import nl.inholland.mysecondapi.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -50,4 +52,10 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/login")
+    public LoginResponseDTO login(@RequestBody LoginRequestDTO loginRequestDTO) {
+        return userService.login(loginRequestDTO);
+    }
+
 }

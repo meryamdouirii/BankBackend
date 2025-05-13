@@ -1,4 +1,4 @@
-package nl.inholland.mysecondapi.security;
+package nl.inholland.mysecondapi.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class WebSecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-// We need to do this to allow POST requests
+        // We need to do this to allow POST requests
         httpSecurity.csrf(csrf -> csrf.disable());
         return httpSecurity.build();
     }
