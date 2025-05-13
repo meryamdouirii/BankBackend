@@ -32,9 +32,11 @@ public class WebSecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
 // We need to do this to allow POST requests
         httpSecurity.csrf(csrf -> csrf.disable());
-        httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/users/login").permitAll());
-        //httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/atms").permitAll());
-        httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/users/register").permitAll());
+        httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/users").permitAll());
+        httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/atms").permitAll());
+        httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/accounts").permitAll());
+        httpSecurity.authorizeHttpRequests(requests -> requests.requestMatchers("/api/transactions").permitAll());
+
 
 
         httpSecurity.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
