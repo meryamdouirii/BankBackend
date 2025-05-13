@@ -21,7 +21,7 @@ import java.util.List;
 
 @Component
 public class JwtProvider {
-    private final String SECRET_KEY = ""; // secret key..
+    private final String SECRET_KEY = ""; // secret key
     SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     private final UserDetailsServiceJpa userDetailsServiceJpa;
 
