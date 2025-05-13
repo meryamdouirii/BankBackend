@@ -3,6 +3,7 @@ package nl.inholland.mysecondapi.services;
 import nl.inholland.mysecondapi.models.Atm;
 import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.repositories.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,9 +13,10 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public UserServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
+        this.userRepository = userRepository; this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
     }
     @Override
     public List<User> getAllUsers() {
@@ -28,6 +30,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
+        if (!userRepository.findUserByEmail(user.getEmail()).isEmpty()) {
+            throw new IllegalArgumentException("Username is already taken");
+        }
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
