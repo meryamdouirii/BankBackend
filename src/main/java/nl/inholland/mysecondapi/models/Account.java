@@ -39,4 +39,10 @@ public class Account {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "sender_account")
+    private List<Transaction> outgoingTransactions;
+
+    @OneToMany(mappedBy = "reciever_account")
+    private List<Transaction> incomingTransactions;
+
 }

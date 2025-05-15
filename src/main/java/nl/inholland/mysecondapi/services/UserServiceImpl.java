@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
         if (!userRepository.findUserByEmail(user.getEmail()).isEmpty()) {
             throw new IllegalArgumentException("Username is already taken");
         }
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        user.setHashed_password(bCryptPasswordEncoder.encode(user.getHashed_password()));
         return userRepository.save(user);
     }
 
@@ -66,7 +66,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findUserByEmail(loginRequestDTO.getEmail()).orElse(null);
 
 
-        if (!bCryptPasswordEncoder.matches(loginRequestDTO.getPassword(), user.getPassword())) {
+        if (!bCryptPasswordEncoder.matches(loginRequestDTO.getPassword(), user.getHashed_password())) {
             throw new IllegalArgumentException("Wrong password");
         }
 

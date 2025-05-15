@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import nl.inholland.mysecondapi.models.enums.ApprovalStatus;
 import nl.inholland.mysecondapi.models.enums.UserRole;
 
 import java.util.List;
@@ -26,8 +27,10 @@ public class User {
     private String lastName;
     private String email;
     private String phoneNumber;
-    private String password;
+    private String hashed_password;
     private UserRole role;
+    private boolean is_active;
+    private ApprovalStatus approval_status;
 
     @OneToMany(mappedBy="owner")
     private List<Account> accounts;
