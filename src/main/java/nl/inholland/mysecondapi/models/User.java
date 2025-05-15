@@ -29,7 +29,7 @@ public class User {
     private String phoneNumber;
     private String password;
     private UserRole role;
-    private int bsn;
+    private String bsn;
     private boolean isActive;
     private ApprovalStatus approvalStatus;
 
