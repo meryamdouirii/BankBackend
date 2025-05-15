@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(User user) {
         if (!userRepository.findUserByEmail(user.getEmail()).isEmpty()) {
-            throw new IllegalArgumentException("Username is already taken");
+            throw new IllegalArgumentException("Email is already taken");
         }
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         return userRepository.save(user);

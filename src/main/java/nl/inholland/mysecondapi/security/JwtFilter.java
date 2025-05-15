@@ -31,24 +31,23 @@ public class JwtFilter extends OncePerRequestFilter {
 
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException { // Implement token verification here
-        // Continue along the filter chain
-
-
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = getToken(request);
-        if (token == null) {
+
+        try {
+            if (token != null) {
+                Authentication auth = jwtProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
             filterChain.doFilter(request, response);
-            return;
+        } catch (Exception ex) {
+            // Log the error and send 401
+            //logger.warn("JWT authentication failed: {}", ex.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // or SC_FORBIDDEN if you prefer
+            response.getWriter().write("Unauthorized: " + ex.getMessage());
+            response.getWriter().flush();
         }
-
-
-        Authentication auth = jwtProvider.getAuthentication(token);
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-
-        filterChain.doFilter(request, response);
     }
+
 }
 

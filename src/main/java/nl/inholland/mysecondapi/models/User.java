@@ -28,6 +28,7 @@ public class User {
     private String phoneNumber;
     private String password;
     private UserRole role;
+    //bsn
 
     @OneToMany(mappedBy="owner")
     private List<Account> accounts;
