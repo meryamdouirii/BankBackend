@@ -38,7 +38,7 @@ public class UserController {
 
     // Create a new user
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody RegisterRequestDTO registerRequestDTO) {
+    public ResponseEntity<User> createUser(@RequestBody RegisterRequestDTO registerRequestDTO) { // TODO: Different Response
         User user = new User(null,registerRequestDTO.getFirstName(),registerRequestDTO.getLastName(),registerRequestDTO.getEmail(),registerRequestDTO.getPhoneNumber(),registerRequestDTO.getPassword(), UserRole.ROLE_CUSTOMER,null);
         return ResponseEntity.ok(userService.createUser(user));
     }
