@@ -42,8 +42,10 @@ public class MyApplicationRunner implements ApplicationRunner {
         List<Account> accounts = new ArrayList<>();
         accounts.add(account);
         User user = new User(null, "Manon", "Dekker","bsn123456", "manon@example.com", "0612345678", "Test",UserRole.ROLE_CUSTOMER, true, ApprovalStatus.ACCEPTED,accounts);
+        User user2 = new User(null, "Harry", "Smit","123456789", "harry@example.com", "0612345678", "Test",UserRole.ROLE_CUSTOMER, false, ApprovalStatus.PENDING,accounts);
         account.setOwner(user);
         userService.createUser(user);
+        userService.createUser(user2);
         accountService.createAccount(account);
 
     }
