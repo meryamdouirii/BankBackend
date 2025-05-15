@@ -58,7 +58,13 @@ public class UserServiceImpl implements UserService {
     //dont actually delete user, set status to inactive
     @Override
     public void deleteUser(Long id) {
-
+        userRepository.findById(id)
+                .map(existingUser->{
+                    existingUser.set_active(false);
+                    userRepository.save(existingUser);
+                    return null;
+                })
+                .orElseThrow(() ->new RuntimeException("User not found"));
     }
 
     @Override
