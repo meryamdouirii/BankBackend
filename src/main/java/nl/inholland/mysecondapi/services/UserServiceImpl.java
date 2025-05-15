@@ -1,6 +1,5 @@
 package nl.inholland.mysecondapi.services;
 
-import nl.inholland.mysecondapi.models.Atm;
 import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.dto.LoginRequestDTO;
 import nl.inholland.mysecondapi.models.dto.LoginResponseDTO;

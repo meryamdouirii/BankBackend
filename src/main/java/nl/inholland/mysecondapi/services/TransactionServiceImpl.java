@@ -37,7 +37,6 @@ public class TransactionServiceImpl implements TransactionService {
                 .map(existing -> {
                     existing.setAmount(updatedTransaction.getAmount());
                     existing.setDateTime(updatedTransaction.getDateTime());
-                    existing.setAtm(updatedTransaction.getAtm());
                     return transactionRepository.save(existing);
                 })
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));

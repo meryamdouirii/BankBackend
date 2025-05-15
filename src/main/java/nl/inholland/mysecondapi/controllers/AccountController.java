@@ -1,7 +1,6 @@
 package nl.inholland.mysecondapi.controllers;
 
 import nl.inholland.mysecondapi.models.Account;
-import nl.inholland.mysecondapi.models.Atm;
 import nl.inholland.mysecondapi.services.AccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

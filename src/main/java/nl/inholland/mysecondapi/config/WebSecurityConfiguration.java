@@ -43,7 +43,6 @@ public class WebSecurityConfiguration {
                         .requestMatchers("/api/users/login").permitAll()
                         .requestMatchers("/api/accounts").permitAll()
                         .requestMatchers("/api/transactions").permitAll()
-                        .requestMatchers("/api/atms").permitAll()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
