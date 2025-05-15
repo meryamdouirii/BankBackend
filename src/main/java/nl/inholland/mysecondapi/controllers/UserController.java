@@ -3,6 +3,9 @@ package nl.inholland.mysecondapi.controllers;
 import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.dto.LoginRequestDTO;
 import nl.inholland.mysecondapi.models.dto.LoginResponseDTO;
+import nl.inholland.mysecondapi.models.dto.RegisterRequestDTO;
+import nl.inholland.mysecondapi.models.enums.ApprovalStatus;
+import nl.inholland.mysecondapi.models.enums.UserRole;
 import nl.inholland.mysecondapi.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,8 +39,20 @@ public class UserController {
 
     // Create a new user
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        return ResponseEntity.ok(userService.createUser(user));
+    public ResponseEntity<User> createUser(@RequestBody RegisterRequestDTO registerRequestDTO) { // TODO: Different Response
+        User user = new User(
+                null, // id
+                registerRequestDTO.getFirstName(), // firstName
+                registerRequestDTO.getLastName(), // lastName
+                registerRequestDTO.getBsn(), // bsn
+                registerRequestDTO.getEmail(), // email
+                registerRequestDTO.getPhoneNumber(), // phoneNumber
+                registerRequestDTO.getPassword(), // hashed_password (you may want to hash this before setting)
+                UserRole.ROLE_CUSTOMER, // role
+                true, // is_active
+                ApprovalStatus.PENDING, // approval_status
+                null // accounts
+        );        return ResponseEntity.ok(userService.createUser(user));
     }
 
     // Update an existing user
