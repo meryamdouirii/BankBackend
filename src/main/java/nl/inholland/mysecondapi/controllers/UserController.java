@@ -4,6 +4,7 @@ import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.dto.LoginRequestDTO;
 import nl.inholland.mysecondapi.models.dto.LoginResponseDTO;
 import nl.inholland.mysecondapi.models.dto.RegisterRequestDTO;
+import nl.inholland.mysecondapi.models.enums.ApprovalStatus;
 import nl.inholland.mysecondapi.models.enums.UserRole;
 import nl.inholland.mysecondapi.services.UserService;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,7 @@ public class UserController {
     // Create a new user
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody RegisterRequestDTO registerRequestDTO) { // TODO: Different Response
-        User user = new User(null,registerRequestDTO.getFirstName(),registerRequestDTO.getLastName(),registerRequestDTO.getEmail(),registerRequestDTO.getPhoneNumber(),registerRequestDTO.getPassword(), UserRole.ROLE_CUSTOMER,null);
+        User user = new User(null,registerRequestDTO.getFirstName(),registerRequestDTO.getLastName(),registerRequestDTO.getEmail(),registerRequestDTO.getPhoneNumber(),registerRequestDTO.getPassword(), UserRole.ROLE_CUSTOMER, registerRequestDTO.getBsn(), true, ApprovalStatus.PENDING, null);
         return ResponseEntity.ok(userService.createUser(user));
     }
 
