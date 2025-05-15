@@ -47,7 +47,7 @@ public class UserController {
                 registerRequestDTO.getBsn(), // bsn
                 registerRequestDTO.getEmail(), // email
                 registerRequestDTO.getPhoneNumber(), // phoneNumber
-                registerRequestDTO.getPassword(), // hashed_password (you may want to hash this before setting)
+                registerRequestDTO.getPassword(),
                 UserRole.ROLE_CUSTOMER, // role
                 true, // is_active
                 ApprovalStatus.PENDING, // approval_status
