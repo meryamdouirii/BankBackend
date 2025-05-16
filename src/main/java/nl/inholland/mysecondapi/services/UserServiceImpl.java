@@ -76,7 +76,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        String token = jwtProvider.createToken(user.getEmail(), user.getRole());
+        String token = jwtProvider.createToken(user.getEmail(), user.getRole(), user.getId());
         return new LoginResponseDTO(token);
     }
 

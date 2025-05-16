@@ -31,11 +31,12 @@ public class JwtProvider {
         this.userDetailsServiceJpa = userDetailsServiceJpa;
     }
 
-    public String createToken(String username, UserRole role) {
+    public String createToken(String username, UserRole role, Long id) {
         Date expiration = new Date(System.currentTimeMillis() + 3600 * 1000);
         return Jwts.builder()
                 .subject(username)
                 .claim("auth", role.name())
+                .claim("id", id)
                 .issuedAt(new Date())
                 .expiration(expiration)
                 .signWith(key)
