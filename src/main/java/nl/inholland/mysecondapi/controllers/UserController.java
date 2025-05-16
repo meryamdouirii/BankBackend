@@ -4,6 +4,7 @@ import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.dto.LoginRequestDTO;
 import nl.inholland.mysecondapi.models.dto.LoginResponseDTO;
 import nl.inholland.mysecondapi.models.dto.RegisterRequestDTO;
+import nl.inholland.mysecondapi.models.dto.UserRequestDTO;
 import nl.inholland.mysecondapi.models.enums.ApprovalStatus;
 import nl.inholland.mysecondapi.models.enums.UserRole;
 import nl.inholland.mysecondapi.services.UserService;
@@ -72,5 +73,23 @@ public class UserController {
     public LoginResponseDTO login(@RequestBody LoginRequestDTO loginRequestDTO) {
         return userService.login(loginRequestDTO);
     }
+
+    @PostMapping("/request")
+    public ResponseEntity<User> handleUserRequest(@RequestBody UserRequestDTO request) {
+        Long userId = request.getUserId();
+        Boolean confirmed = request.getConfirmed();
+
+        return userService.getUserById(userId).map(user -> {
+            if (confirmed != null && confirmed) {
+                user.setApproval_status(ApprovalStatus.ACCEPTED);
+            } else {
+                user.setApproval_status(ApprovalStatus.DECLINED);
+            }
+
+            User updatedUser = userService.updateUser(userId, user);
+            return ResponseEntity.ok(updatedUser);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 
 }
