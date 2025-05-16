@@ -23,12 +23,12 @@ import java.util.List;
 
 public class MyApplicationRunner implements ApplicationRunner {
 
-    private final TransactionService transactionService;
+    //private final TransactionService transactionService;
     private final UserService userService;
     private final AccountService accountService;
 
     public MyApplicationRunner(TransactionService transactionService, UserService userService, AccountService accountService) {
-        this.transactionService = transactionService;
+        //this.transactionService = transactionService;
         this.userService = userService;
         this.accountService = accountService;
     }
