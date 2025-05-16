@@ -43,6 +43,7 @@ public class WebSecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/login").permitAll()
                         .requestMatchers("/api/users").permitAll()
+                        .requestMatchers("/api/users/request").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/users").permitAll()//testing if user has been added
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers("/api/accounts").permitAll()
