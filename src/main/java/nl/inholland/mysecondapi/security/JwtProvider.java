@@ -31,10 +31,10 @@ public class JwtProvider {
         this.userDetailsServiceJpa = userDetailsServiceJpa;
     }
 
-    public String createToken(String username, UserRole role, Long id) {
+    public String createToken(String email, UserRole role, Long id) {
         Date expiration = new Date(System.currentTimeMillis() + 3600 * 1000);
         return Jwts.builder()
-                .subject(username)
+                .subject(email)
                 .claim("auth", role.name())
                 .claim("id", id)
                 .issuedAt(new Date())
@@ -45,8 +45,8 @@ public class JwtProvider {
 
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parser().verifyWith(key).build().parseClaimsJws(token).getPayload();
-        String username = claims.getSubject();
-        UserDetails userDetails = userDetailsServiceJpa.loadUserByUsername(username);
+        String email = claims.getSubject();
+        UserDetails userDetails = userDetailsServiceJpa.loadUserByUsername(email);
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 }
