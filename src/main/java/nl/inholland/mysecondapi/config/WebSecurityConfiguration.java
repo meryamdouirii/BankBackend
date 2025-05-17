@@ -45,12 +45,14 @@ public class WebSecurityConfiguration {
                         .requestMatchers("/api/users").permitAll()
                         .requestMatchers("/api/users/request").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/users").permitAll()//testing if user has been added
+                        .requestMatchers(HttpMethod.GET,"/api/users/**").permitAll() // Dit voegt toegang toe tot alle paden onder /api/users/
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers("/api/accounts").permitAll()
                         .requestMatchers("/api/transactions").permitAll()
+                        .requestMatchers("/api/atms").permitAll()
+                        .requestMatchers("/api/users").permitAll()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
     @Bean

@@ -17,9 +17,9 @@ public class UserDetailsServiceJpa implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) {
+    public UserDetails loadUserByUsername(String email) {
         User user
-                = this.userRepository.findUserByEmail(username).orElse(null);
+                = this.userRepository.findUserByEmail(email).orElse(null);
         UserDetails userDetails =
                 org.springframework.security.core.userdetails.User
                         .withUsername(user.getEmail())

@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(User user) {
         if (!userRepository.findUserByEmail(user.getEmail()).isEmpty()) {
-            throw new IllegalArgumentException("Email is already taken");
+            throw new IllegalArgumentException("Email is already taken, please choose another one");
         }
         user.setHashed_password(bCryptPasswordEncoder.encode(user.getHashed_password()));
         return userRepository.save(user);
@@ -71,15 +71,12 @@ public class UserServiceImpl implements UserService {
     public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
         User user = userRepository.findUserByEmail(loginRequestDTO.getEmail()).orElse(null);
 
-
-        if (!bCryptPasswordEncoder.matches(loginRequestDTO.getPassword(), user.getHashed_password())) {
-            throw new IllegalArgumentException("Wrong password");
+        // Check user exists and password matches
+        if (user == null || !bCryptPasswordEncoder.matches(loginRequestDTO.getPassword(), user.getHashed_password())) {
+            throw new IllegalArgumentException("Invalid email or password");
         }
 
-
-        String token = jwtProvider.createToken(user.getEmail(), user.getRole());
-
-
+        String token = jwtProvider.createToken(user.getEmail(), user.getRole(), user.getId());
         return new LoginResponseDTO(token);
     }
 
