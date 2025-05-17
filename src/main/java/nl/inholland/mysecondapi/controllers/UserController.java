@@ -1,5 +1,6 @@
 package nl.inholland.mysecondapi.controllers;
 
+import nl.inholland.mysecondapi.models.Account;
 import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.dto.LoginRequestDTO;
 import nl.inholland.mysecondapi.models.dto.LoginResponseDTO;
@@ -8,8 +9,10 @@ import nl.inholland.mysecondapi.models.dto.UserRequestDTO;
 import nl.inholland.mysecondapi.models.enums.ApprovalStatus;
 import nl.inholland.mysecondapi.models.enums.UserRole;
 import nl.inholland.mysecondapi.services.UserService;
+import nl.inholland.mysecondapi.services.AccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
@@ -18,10 +21,12 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final AccountService accountService;
 
     // Constructor to inject the UserService
-    public UserController(UserService userService) {
+    public UserController(UserService userService, AccountService accountService) {
         this.userService = userService;
+        this.accountService = accountService;
     }
 
     // Get all users
@@ -76,6 +81,7 @@ public class UserController {
 
     @PostMapping("/request")
     public ResponseEntity<User> handleUserRequest(@RequestBody UserRequestDTO request) {
+        System.out.println("Received request: " + request);
         Long userId = request.getUserId();
         Boolean confirmed = request.getConfirmed();
 
@@ -87,9 +93,20 @@ public class UserController {
             }
 
             User updatedUser = userService.updateUser(userId, user);
+
+            List<Account> createdAccounts = accountService.createStarterAccounts(
+                    updatedUser,
+                    request.getAbsoluteLimitCheckings(),
+                    request.getDailyLimitCheckings(),
+                    request.getAbsoluteLimitSavings(),
+                    request.getDailyLimitSavings()
+            );
+
             return ResponseEntity.ok(updatedUser);
         }).orElseGet(() -> ResponseEntity.notFound().build());
+
     }
+
 
 
 }

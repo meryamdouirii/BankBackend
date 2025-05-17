@@ -31,9 +31,9 @@ public class Account {
     private User owner;
 
     private String IBAN;
-    private String accountNumber;
     private BigDecimal balance;
     private BigDecimal accountLimit;
+    private BigDecimal dailyLimit;
     private AccountType type;
     private AccountStatus status;
     private LocalDateTime createdAt;
