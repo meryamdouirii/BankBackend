@@ -12,9 +12,11 @@ public class IbanGenerator {
 
 
     public String generateIban(List<String> usedIbans) {
+        Random random = new Random();
         String iban;
         do {
-            String accountNumber = String.format("%010d", new Random().nextLong(1_000_000_0000L));
+            long accountNumberLong = Math.abs(random.nextLong()) % 1_000_000_0000L; // 10 digits max
+            String accountNumber = String.format("%010d", accountNumberLong);
 
             String tempIban = BANK_CODE + accountNumber + COUNTRY_CODE + "00";
             String numericIban = convertLettersToNumbers(tempIban);
@@ -29,6 +31,7 @@ public class IbanGenerator {
         return iban;
     }
 
+
     private String convertLettersToNumbers(String input) {
         StringBuilder numeric = new StringBuilder();
         for (char c : input.toCharArray()) {
@@ -42,23 +45,16 @@ public class IbanGenerator {
     }
 
     private int computeMod97(String numericIban) {
-        StringBuilder temp = new StringBuilder();
         int remainder = 0;
 
         for (char c : numericIban.toCharArray()) {
-            temp.append(c);
-            if (temp.length() >= 9) {
-                remainder = Integer.parseInt(remainder + temp.toString()) % 97;
-                temp.setLength(0);
-            }
-        }
-
-        if (temp.length() > 0) {
-            remainder = Integer.parseInt(remainder + temp.toString()) % 97;
+            int digit = c - '0';
+            remainder = (remainder * 10 + digit) % 97;
         }
 
         return remainder;
     }
+
 
     private String formatIban(String iban) {
         StringBuilder formatted = new StringBuilder();
