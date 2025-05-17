@@ -94,7 +94,7 @@ public class UserController {
 
             User updatedUser = userService.updateUser(userId, user);
 
-            List<Account> createdAccounts = accountService.createStarterAccounts(
+            List<Account> createdAccounts = this.accountService.createStarterAccounts(
                     updatedUser,
                     request.getAbsoluteLimitCheckings(),
                     request.getDailyLimitCheckings(),
