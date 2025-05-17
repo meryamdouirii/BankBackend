@@ -11,9 +11,11 @@ import nl.inholland.mysecondapi.models.enums.UserRole;
 import nl.inholland.mysecondapi.services.UserService;
 import nl.inholland.mysecondapi.services.AccountService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
+import javax.security.sasl.AuthenticationException;
 import java.util.List;
 
 @RestController
@@ -107,6 +109,11 @@ public class UserController {
 
     }
 
-
+    @GetMapping("/test-error")
+    @PreAuthorize("hasRole('ADMINISTRATOR')") // Requires ADMINISTRATOR role
+    public String triggerError() {
+        // This code ONLY runs if authorization succeeds
+        throw new NullPointerException("test-error"); // Would return 500
+    }
 
 }

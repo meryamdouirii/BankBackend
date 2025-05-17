@@ -1,5 +1,6 @@
 package nl.inholland.mysecondapi.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.security.JwtFilter;
 import nl.inholland.mysecondapi.security.JwtProvider;
@@ -44,15 +45,26 @@ public class WebSecurityConfiguration {
                         .requestMatchers("/api/users/login").permitAll()
                         .requestMatchers("/api/users").permitAll()
                         .requestMatchers("/api/users/request").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/users").permitAll()//testing if user has been added
-                        .requestMatchers(HttpMethod.GET,"/api/users/**").permitAll() // Dit voegt toegang toe tot alle paden onder /api/users/
+                        .requestMatchers(HttpMethod.GET,"/api/users").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/users/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers("/api/accounts").permitAll()
                         .requestMatchers("/api/transactions").permitAll()
                         .requestMatchers("/api/atms").permitAll()
-                        .requestMatchers("/api/users").permitAll()
+                )
+
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, e) -> {  // 401
+                            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            res.getWriter().write("Unauthorized: Invalid credentials");
+                        })
+                        .accessDeniedHandler((req, res, e) -> {  // 403
+                            res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            res.getWriter().write("Forbidden: Missing required role");
+                        })
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
     @Bean

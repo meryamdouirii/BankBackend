@@ -16,10 +16,10 @@ import java.io.IOException;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
+
     public JwtFilter(JwtProvider jwtProvider) {
         this.jwtProvider = jwtProvider;
     }
-
 
     private String getToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
@@ -29,9 +29,12 @@ public class JwtFilter extends OncePerRequestFilter {
         return null;
     }
 
-
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
         String token = getToken(request);
 
         try {
@@ -40,14 +43,14 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
             filterChain.doFilter(request, response);
-        } catch (Exception ex) {
-            // Log the error and send 401
-            //logger.warn("JWT authentication failed: {}", ex.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // or SC_FORBIDDEN if you prefer
-            response.getWriter().write("Unauthorized: " + ex.getMessage());
-            response.getWriter().flush();
         }
+        // Only catch JWT-specific exceptions
+        catch (io.jsonwebtoken.JwtException | IllegalArgumentException ex) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid JWT: " + ex.getMessage());
+        }
+        // Let all other exceptions propagate (including AccessDeniedException)
     }
-
 }
+
 
