@@ -110,7 +110,7 @@ public class UserController {
     }
 
     @GetMapping("/test-error")
-    @PreAuthorize("hasRole('ADMINISTRATOR')") // Requires ADMINISTRATOR role
+    @PreAuthorize("hasRole('CUSTOMER')") // Requires ADMINISTRATOR role
     public String triggerError() {
         // This code ONLY runs if authorization succeeds
         throw new NullPointerException("test-error"); // Would return 500
