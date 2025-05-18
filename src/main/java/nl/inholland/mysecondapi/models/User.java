@@ -36,5 +36,9 @@ public class User {
     @OneToMany(mappedBy="owner")
     private List<Account> accounts;
 
+    public List<Account> addAccount(Account account){
+        this.accounts.add(account);
+        return this.accounts;
+    }
 
 }

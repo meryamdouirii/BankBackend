@@ -88,21 +88,30 @@ public class UserController {
         return userService.getUserById(userId).map(user -> {
             if (confirmed != null && confirmed) {
                 user.setApproval_status(ApprovalStatus.ACCEPTED);
+                User updatedUser = userService.updateUser(userId, user);
+
+                List<Account> createdAccounts = this.accountService.createStarterAccounts(
+                        updatedUser,
+                        request.getAbsoluteLimitCheckings(),
+                        request.getDailyLimitCheckings(),
+                        request.getAbsoluteLimitSavings(),
+                        request.getDailyLimitSavings()
+                );
+
+                for (Account account : createdAccounts) {
+                    updatedUser.addAccount(account);
+                }
+
+                // update user met accounts
+                updatedUser = userService.updateUser(userId, updatedUser);
+
+                return ResponseEntity.ok(updatedUser);
             } else {
                 user.setApproval_status(ApprovalStatus.DECLINED);
+                userService.updateUser(userId, user);
+                return ResponseEntity.ok(user);
             }
 
-            User updatedUser = userService.updateUser(userId, user);
-
-            List<Account> createdAccounts = this.accountService.createStarterAccounts(
-                    updatedUser,
-                    request.getAbsoluteLimitCheckings(),
-                    request.getDailyLimitCheckings(),
-                    request.getAbsoluteLimitSavings(),
-                    request.getDailyLimitSavings()
-            );
-
-            return ResponseEntity.ok(updatedUser);
         }).orElseGet(() -> ResponseEntity.notFound().build());
 
     }
