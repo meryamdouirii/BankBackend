@@ -43,7 +43,7 @@ public class MyApplicationRunner implements ApplicationRunner {
         accounts.add(account);
         User user = new User(null, "Manon", "Dekker","bsn123456", "manon@example.com", "0612345678", "Test",UserRole.ROLE_CUSTOMER, true, ApprovalStatus.ACCEPTED,accounts);
         List<User> extraUsers = List.of(
-                new User(null, "Harry", "Smit","123456789", "harry@example.com", "0612345678", "Test",UserRole.ROLE_CUSTOMER, false, ApprovalStatus.PENDING,accounts),
+                new User(null, "Harry", "Smit","123456789", "harry@example.com", "0612345678", "Test",UserRole.ROLE_ADMINISTRATOR, false, ApprovalStatus.PENDING,accounts),
                 new User(null, "Sophie", "Jansen", "bsn234567", "sophie@example.com", "0612345671", "Test", UserRole.ROLE_CUSTOMER, true, ApprovalStatus.ACCEPTED, null),
                 new User(null, "Lucas", "de Vries", "bsn345678", "lucas@example.com", "0612345672", "Test", UserRole.ROLE_CUSTOMER, false, ApprovalStatus.DECLINED, null),
                 new User(null, "Emma", "Bakker", "bsn456789", "emma@example.com", "0612345673", "Test", UserRole.ROLE_CUSTOMER, true, ApprovalStatus.PENDING, null),
