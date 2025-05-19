@@ -33,7 +33,6 @@ public class Account {
     private String IBAN;
     private BigDecimal balance;
     private BigDecimal accountLimit;
-    private BigDecimal dailyLimit;
     private AccountType type;
     private AccountStatus status;
     private LocalDateTime createdAt;

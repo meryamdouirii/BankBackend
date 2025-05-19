@@ -18,6 +18,6 @@ public interface AccountService {
     Account createAccount(Account account);
     Account updateAccount(Long id, Account account);
     void deleteAccount(Long id);
-    List <Account> createStarterAccounts(User user, BigDecimal absoluteLimitCheckings, BigDecimal dailyLimitCheckings, BigDecimal absoluteLimitSavings, BigDecimal dailyLimitSavings);
+    List <Account> createStarterAccounts(User user, BigDecimal absoluteLimitCheckings, BigDecimal absoluteLimitSavings);
 
 }

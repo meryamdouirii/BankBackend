@@ -12,13 +12,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Getter
 public class UserRequestDTO {
-    private Long userId;
-    private Boolean confirmed;
-
-    private BigDecimal dailyLimitSavings;
-    private BigDecimal absoluteLimitSavings;
-
-    private BigDecimal dailyLimitCheckings;
     private BigDecimal absoluteLimitCheckings;
+    private BigDecimal absoluteLimitSavings;
+    private BigDecimal dailyLimit;
+    private BigDecimal transferLimit;
 }
 

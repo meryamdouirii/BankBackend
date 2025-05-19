@@ -44,7 +44,8 @@ public class WebSecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/login").permitAll()
                         .requestMatchers("/api/users").permitAll()
-                        .requestMatchers("/api/users/request").permitAll()
+                        .requestMatchers("/api/users/approve/{id}").permitAll()
+                        .requestMatchers("/api/users/deny/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/users").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/users/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()

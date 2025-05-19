@@ -42,7 +42,7 @@ public class MyApplicationRunner implements ApplicationRunner {
 
         Account account = new Account(
                 null, null, "IBAN123456789",
-                BigDecimal.valueOf(1000), BigDecimal.valueOf(10), BigDecimal.valueOf(500),
+                BigDecimal.valueOf(1000), BigDecimal.valueOf(0),
                 AccountType.CHECKING, AccountStatus.ACTIVE,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
