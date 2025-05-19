@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 import javax.security.sasl.AuthenticationException;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -56,10 +57,13 @@ public class UserController {
                 registerRequestDTO.getEmail(), // email
                 registerRequestDTO.getPhoneNumber(), // phoneNumber
                 registerRequestDTO.getPassword(),
+                BigDecimal.valueOf(0),//daily limit
+                BigDecimal.valueOf(0),//transfer limit
                 UserRole.ROLE_CUSTOMER, // role
                 true, // is_active
                 ApprovalStatus.PENDING, // approval_status
-                null // accounts
+                null, // accounts
+                null // transactions initiated
         );        return ResponseEntity.ok(userService.createUser(user));
     }
 
@@ -80,24 +84,29 @@ public class UserController {
     public LoginResponseDTO login(@RequestBody LoginRequestDTO loginRequestDTO) {
         return userService.login(loginRequestDTO);
     }
-
-    @PostMapping("/request")
-    public ResponseEntity<User> handleUserRequest(@RequestBody UserRequestDTO request) {
+    @PostMapping("/deny/{id}")
+    public ResponseEntity<User> denyUser(@PathVariable Long id) {
+        return this.userService.getUserById(id).map(user ->{
+            user.setApproval_status(ApprovalStatus.DECLINED);
+            userService.updateUser(id, user);
+            return ResponseEntity.ok(user);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+    @PostMapping("/approve/{id}")
+    public ResponseEntity<User> handleUserRequest(@RequestBody UserRequestDTO request, @PathVariable Long id) {
         System.out.println("Received request: " + request);
-        Long userId = request.getUserId();
-        Boolean confirmed = request.getConfirmed();
 
-        return userService.getUserById(userId).map(user -> {
-            if (confirmed != null && confirmed) {
+        return userService.getUserById(id).map(user -> {
                 user.setApproval_status(ApprovalStatus.ACCEPTED);
-                User updatedUser = userService.updateUser(userId, user);
+                user.setTransfer_limit(request.getTransferLimit());
+                user.setDaily_limit(request.getDailyLimit());
+                User updatedUser = userService.updateUser(id, user);
 
                 List<Account> createdAccounts = this.accountService.createStarterAccounts(
                         updatedUser,
                         request.getAbsoluteLimitCheckings(),
-                        request.getDailyLimitCheckings(),
-                        request.getAbsoluteLimitSavings(),
-                        request.getDailyLimitSavings()
+                        request.getAbsoluteLimitSavings()
                 );
 
                 for (Account account : createdAccounts) {
@@ -105,15 +114,10 @@ public class UserController {
                 }
 
                 // update user met accounts
-                updatedUser = userService.updateUser(userId, updatedUser);
+                updatedUser = userService.updateUser(id, updatedUser);
+
 
                 return ResponseEntity.ok(updatedUser);
-            } else {
-                user.setApproval_status(ApprovalStatus.DECLINED);
-                userService.updateUser(userId, user);
-                return ResponseEntity.ok(user);
-            }
-
         }).orElseGet(() -> ResponseEntity.notFound().build());
 
     }

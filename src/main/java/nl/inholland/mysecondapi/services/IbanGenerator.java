@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class IbanGenerator {
@@ -15,32 +16,20 @@ public class IbanGenerator {
         String iban;
 
         do {
-            long accountNumberLong = Math.abs(random.nextLong()) % 1_000_000_0000L; // 10 digits
+            long accountNumberLong = ThreadLocalRandom.current().nextLong(0, 10_000_000_000L);//genereer een random 10 digit code
             String accountNumber = String.format("%010d", accountNumberLong);
 
-            // Step 1: Temporarily use "00" as check digits
-            String tempIban = COUNTRY_CODE + "00" + BANK_CODE + accountNumber;
+            String rearranged = BANK_CODE + accountNumber + COUNTRY_CODE + "00"; //format om check code te berekenen
 
-            // Step 2: Reorder for validation
-            String rearranged = BANK_CODE + accountNumber + COUNTRY_CODE + "00";
+            String numericIban = convertLettersToNumbers(rearranged); // zet alle letters om naar nummers
 
-            // Step 3: Convert to numeric
-            String numericIban = convertLettersToNumbers(rearranged);
+            int mod97 = computeMod97(numericIban); //deel door 97 en haal de restwaarde op
 
-            // Step 4: Calculate check digits
-            int mod97 = computeMod97(numericIban);
-            String checkDigits = String.format("%02d", 98 - mod97);
+            String checkDigits = String.format("%02d", 98 - mod97); //doe 98 - de restwaarde
 
-            // Step 5: Build final IBAN
-            iban = COUNTRY_CODE + checkDigits + BANK_CODE + accountNumber;
+            iban = COUNTRY_CODE + checkDigits + BANK_CODE + accountNumber; //format de iban string
 
-            // Step 6: Validate final IBAN (check if MOD 97 == 1)
-            String finalCheck = convertLettersToNumbers(BANK_CODE + accountNumber + COUNTRY_CODE + checkDigits);
-            if (computeMod97(finalCheck) != 1) {
-                continue; // Retry if the final IBAN is invalid
-            }
-
-            // Step 7: Format with spaces
+            //voeg spaties toe
             iban = formatIban(iban);
 
         } while (usedIbans.contains(iban));

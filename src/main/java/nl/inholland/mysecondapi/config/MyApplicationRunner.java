@@ -36,33 +36,75 @@ public class MyApplicationRunner implements ApplicationRunner {
     //add dummy data to database
     @Override
     public void run(ApplicationArguments args) throws Exception {
-       
 
-        Account account = new Account(null,null,"IBAN123456789",BigDecimal.valueOf(1000),BigDecimal.valueOf(10),BigDecimal.valueOf(500),AccountType.CHECKING,AccountStatus.ACTIVE,LocalDateTime.now(),LocalDateTime.now(), null,null);
+        BigDecimal dailyLimit = BigDecimal.valueOf(1000);
+        BigDecimal transactionLimit = BigDecimal.valueOf(500);
+
+        Account accountCheckings = new Account(
+                null, null, "IBAN123456789",
+                BigDecimal.valueOf(1000), BigDecimal.valueOf(0),
+                AccountType.CHECKING, AccountStatus.ACTIVE,
+                LocalDateTime.now(), LocalDateTime.now(), null, null
+        );
+
+        Account accountSavings = new Account(
+                null, null, "IBAN123456788",
+                BigDecimal.valueOf(1000), BigDecimal.valueOf(0),
+                AccountType.SAVINGS, AccountStatus.ACTIVE,
+                LocalDateTime.now(), LocalDateTime.now(), null, null
+        );
+
         List<Account> accounts = new ArrayList<>();
-        accounts.add(account);
-        User user = new User(null, "Manon", "Dekker","bsn123456", "manon@example.com", "0612345678", "Test",UserRole.ROLE_CUSTOMER, true, ApprovalStatus.ACCEPTED,accounts);
+        accounts.add(accountSavings);
+        accounts.add(accountCheckings);
+
+
+        User user = new User(
+                null, "Manon", "Dekker", "bsn123456", "manon@example.com", "0612345678", "Test",
+                dailyLimit, transactionLimit,
+                UserRole.ROLE_CUSTOMER, true, ApprovalStatus.ACCEPTED, accounts, null
+        );
+
         List<User> extraUsers = List.of(
-                new User(null, "Harry", "Smit","123456789", "harry@example.com", "0612345678", "Test",UserRole.ROLE_ADMINISTRATOR, false, ApprovalStatus.PENDING,accounts),
-                new User(null, "Sophie", "Jansen", "bsn234567", "sophie@example.com", "0612345671", "Test", UserRole.ROLE_CUSTOMER, true, ApprovalStatus.ACCEPTED, null),
-                new User(null, "Lucas", "de Vries", "bsn345678", "lucas@example.com", "0612345672", "Test", UserRole.ROLE_CUSTOMER, false, ApprovalStatus.DECLINED, null),
-                new User(null, "Emma", "Bakker", "bsn456789", "emma@example.com", "0612345673", "Test", UserRole.ROLE_CUSTOMER, true, ApprovalStatus.PENDING, null),
-                new User(null, "Daan", "Visser", "bsn567890", "daan@example.com", "0612345674", "Test", UserRole.ROLE_CUSTOMER, false, ApprovalStatus.ACCEPTED, null),
-                new User(null, "Julia", "Smit", "bsn678901", "julia@example.com", "0612345675", "Test", UserRole.ROLE_CUSTOMER, true, ApprovalStatus.DECLINED, null),
-                new User(null, "Thomas", "Meijer", "bsn789012", "thomas@example.com", "0612345676", "Test", UserRole.ROLE_CUSTOMER, false, ApprovalStatus.PENDING, null),
-                new User(null, "Lotte", "de Boer", "bsn890123", "lotte@example.com", "0612345677", "Test", UserRole.ROLE_CUSTOMER, true, ApprovalStatus.DECLINED, null),
-                new User(null, "Noah", "Mulder", "bsn901234", "noah@example.com", "0612345678", "Test", UserRole.ROLE_CUSTOMER, false, ApprovalStatus.ACCEPTED, null)
+                new User(null, "Harry", "Smit", "123456789", "harry@example.com", "0612345678", "Test",
+                        dailyLimit, transactionLimit,
+                        UserRole.ROLE_ADMINISTRATOR, false, ApprovalStatus.PENDING, accounts, null),
+                new User(null, "Sophie", "Jansen", "bsn234567", "sophie@example.com", "0612345671", "Test",
+                        dailyLimit, transactionLimit,
+                        UserRole.ROLE_CUSTOMER, true, ApprovalStatus.ACCEPTED, null, null),
+                new User(null, "Lucas", "de Vries", "bsn345678", "lucas@example.com", "0612345672", "Test",
+                        dailyLimit, transactionLimit,
+                        UserRole.ROLE_CUSTOMER, false, ApprovalStatus.DECLINED, null, null),
+                new User(null, "Emma", "Bakker", "bsn456789", "emma@example.com", "0612345673", "Test",
+                        dailyLimit, transactionLimit,
+                        UserRole.ROLE_CUSTOMER, true, ApprovalStatus.PENDING, null, null),
+                new User(null, "Daan", "Visser", "bsn567890", "daan@example.com", "0612345674", "Test",
+                        dailyLimit, transactionLimit,
+                        UserRole.ROLE_CUSTOMER, false, ApprovalStatus.ACCEPTED, null, null),
+                new User(null, "Julia", "Smit", "bsn678901", "julia@example.com", "0612345675", "Test",
+                        dailyLimit, transactionLimit,
+                        UserRole.ROLE_CUSTOMER, true, ApprovalStatus.DECLINED, null, null),
+                new User(null, "Thomas", "Meijer", "bsn789012", "thomas@example.com", "0612345676", "Test",
+                        dailyLimit, transactionLimit,
+                        UserRole.ROLE_CUSTOMER, false, ApprovalStatus.PENDING, null, null),
+                new User(null, "Lotte", "de Boer", "bsn890123", "lotte@example.com", "0612345677", "Test",
+                        dailyLimit, transactionLimit,
+                        UserRole.ROLE_CUSTOMER, true, ApprovalStatus.DECLINED, null, null),
+                new User(null, "Noah", "Mulder", "bsn901234", "noah@example.com", "0612345678", "Test",
+                        dailyLimit, transactionLimit,
+                        UserRole.ROLE_CUSTOMER, false, ApprovalStatus.ACCEPTED, null, null)
         );
 
         for (User extraUser : extraUsers) {
             userService.createUser(extraUser);
         }
 
-
-        account.setOwner(user);
+        accountCheckings.setOwner(user);
+        accountSavings.setOwner(user);
         userService.createUser(user);
 
-        accountService.createAccount(account);
+        accountService.createAccount(accountSavings);
+        accountService.createAccount(accountCheckings);
 
     }
 

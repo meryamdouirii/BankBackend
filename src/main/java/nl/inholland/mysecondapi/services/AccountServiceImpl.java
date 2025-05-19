@@ -38,8 +38,6 @@ public class AccountServiceImpl implements AccountService {
         return this.accountRepository.findById(id).map(existingAccount -> {
             existingAccount.setUpdatedAt(LocalDateTime.now());
             existingAccount.setAccountLimit(updatedAccount.getAccountLimit());
-            //bijwerken adhv transacties in backend
-            //genereer iban in backend
             existingAccount.setStatus(updatedAccount.getStatus());  //wie kan status aanpassen? Kijk naar rollen
             existingAccount.setType(updatedAccount.getType());
             return this.accountRepository.save(existingAccount);
@@ -53,40 +51,30 @@ public class AccountServiceImpl implements AccountService {
             return this.accountRepository.save(existingAccount);
         }).orElseThrow(() -> new RuntimeException("Account not found"));
     }
-
-    @Override
-    public List<Account> createStarterAccounts(User user, BigDecimal absoluteLimitCheckings, BigDecimal dailyLimitCheckings, BigDecimal absoluteLimitSavings, BigDecimal dailyLimitSavings) {
+    public Account createAccountByType(User user,AccountType type, BigDecimal absoluteLimit) {
         List<String> usedIbans = this.getAllAcounts().stream()
                 .map(Account::getIBAN)
                 .toList();
-        Account savingsAccount = new Account( //Create new savings account
+        return new Account(
                 null,
                 user,
                 ibanGenerator.generateIban(usedIbans),
                 BigDecimal.valueOf(0),
-                absoluteLimitSavings,
-                dailyLimitSavings,
-                AccountType.SAVINGS,
+                absoluteLimit,
+                type,
                 AccountStatus.ACTIVE,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
                 null,
                 null
         );
-        Account checkingAccount = new Account(
-                null,
-                user,
-                ibanGenerator.generateIban(usedIbans),
-                BigDecimal.valueOf(0),
-                absoluteLimitCheckings,
-                dailyLimitCheckings,
-                AccountType.CHECKING,
-                AccountStatus.ACTIVE,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                null,
-                null
-        );
+
+    }
+    @Override
+    public List<Account> createStarterAccounts(User user, BigDecimal absoluteLimitCheckings, BigDecimal absoluteLimitSavings) {
+
+        Account savingsAccount = this.createAccountByType(user, AccountType.SAVINGS, absoluteLimitSavings);
+        Account checkingAccount = this.createAccountByType(user, AccountType.CHECKING, absoluteLimitCheckings);
         List<Account> accounts = new ArrayList<>();
         accounts.add(checkingAccount);
         accounts.add(savingsAccount);

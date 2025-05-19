@@ -24,6 +24,8 @@ public class Transaction {
     private Account sender_account;
     private BigDecimal amount;
     private LocalDateTime dateTime;
+    @ManyToOne
+    private User initiator;
     private String description;
 
 
