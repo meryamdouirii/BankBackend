@@ -40,15 +40,24 @@ public class MyApplicationRunner implements ApplicationRunner {
         BigDecimal dailyLimit = BigDecimal.valueOf(1000);
         BigDecimal transactionLimit = BigDecimal.valueOf(500);
 
-        Account account = new Account(
+        Account accountCheckings = new Account(
                 null, null, "IBAN123456789",
                 BigDecimal.valueOf(1000), BigDecimal.valueOf(0),
                 AccountType.CHECKING, AccountStatus.ACTIVE,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
+        Account accountSavings = new Account(
+                null, null, "IBAN123456788",
+                BigDecimal.valueOf(1000), BigDecimal.valueOf(0),
+                AccountType.SAVINGS, AccountStatus.ACTIVE,
+                LocalDateTime.now(), LocalDateTime.now(), null, null
+        );
+
         List<Account> accounts = new ArrayList<>();
-        accounts.add(account);
+        accounts.add(accountSavings);
+        accounts.add(accountCheckings);
+
 
         User user = new User(
                 null, "Manon", "Dekker", "bsn123456", "manon@example.com", "0612345678", "Test",
@@ -90,10 +99,12 @@ public class MyApplicationRunner implements ApplicationRunner {
             userService.createUser(extraUser);
         }
 
-        account.setOwner(user);
+        accountCheckings.setOwner(user);
+        accountSavings.setOwner(user);
         userService.createUser(user);
 
-        accountService.createAccount(account);
+        accountService.createAccount(accountSavings);
+        accountService.createAccount(accountCheckings);
 
     }
 
