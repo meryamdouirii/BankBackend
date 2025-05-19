@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 import javax.security.sasl.AuthenticationException;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -56,10 +57,13 @@ public class UserController {
                 registerRequestDTO.getEmail(), // email
                 registerRequestDTO.getPhoneNumber(), // phoneNumber
                 registerRequestDTO.getPassword(),
+                BigDecimal.valueOf(0),//daily limit
+                BigDecimal.valueOf(0),//transfer limit
                 UserRole.ROLE_CUSTOMER, // role
                 true, // is_active
                 ApprovalStatus.PENDING, // approval_status
-                null // accounts
+                null, // accounts
+                null // transactions initiated
         );        return ResponseEntity.ok(userService.createUser(user));
     }
 
@@ -87,7 +91,7 @@ public class UserController {
         Long userId = request.getUserId();
         Boolean confirmed = request.getConfirmed();
 
-        return userService.getUserById(userId).map(user -> {
+        return userService.getUserById(userId).map(user -> {//denk na wat efficientst is bij if else
             if (confirmed != null && confirmed) {
                 user.setApproval_status(ApprovalStatus.ACCEPTED);
                 User updatedUser = userService.updateUser(userId, user);

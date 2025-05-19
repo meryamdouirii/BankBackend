@@ -38,8 +38,6 @@ public class AccountServiceImpl implements AccountService {
         return this.accountRepository.findById(id).map(existingAccount -> {
             existingAccount.setUpdatedAt(LocalDateTime.now());
             existingAccount.setAccountLimit(updatedAccount.getAccountLimit());
-            //bijwerken adhv transacties in backend
-            //genereer iban in backend
             existingAccount.setStatus(updatedAccount.getStatus());  //wie kan status aanpassen? Kijk naar rollen
             existingAccount.setType(updatedAccount.getType());
             return this.accountRepository.save(existingAccount);
