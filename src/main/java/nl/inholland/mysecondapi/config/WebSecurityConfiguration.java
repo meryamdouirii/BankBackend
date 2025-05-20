@@ -39,6 +39,7 @@ public class WebSecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .headers(headers-> headers.frameOptions(frameOptionsConfig-> frameOptionsConfig.sameOrigin()))
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
@@ -52,6 +53,10 @@ public class WebSecurityConfiguration {
                         .requestMatchers("/api/accounts").permitAll()
                         .requestMatchers("/api/transactions").permitAll()
                         .requestMatchers("/api/atms").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("v3/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
                 )
 
                 .exceptionHandling(ex -> ex
