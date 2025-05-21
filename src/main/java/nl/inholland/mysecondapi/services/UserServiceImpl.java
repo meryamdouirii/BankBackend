@@ -48,6 +48,10 @@ public class UserServiceImpl implements UserService {
                 .map(existingUser->{
                     existingUser.setFirstName(updatedUser.getFirstName());
                     existingUser.setLastName(updatedUser.getLastName());
+                    existingUser.setDaily_limit(updatedUser.getDaily_limit());
+                    existingUser.setTransfer_limit(updatedUser.getTransfer_limit());
+                    existingUser.setAccounts(updatedUser.getAccounts());
+                    existingUser.setApproval_status(updatedUser.getApproval_status());
                     existingUser.setEmail(updatedUser.getEmail());
                     existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
                     return userRepository.save(existingUser);
