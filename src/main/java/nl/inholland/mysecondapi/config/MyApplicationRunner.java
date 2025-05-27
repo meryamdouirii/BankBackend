@@ -5,6 +5,7 @@ import nl.inholland.mysecondapi.models.Transaction;
 import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.enums.*;
 import nl.inholland.mysecondapi.services.AccountService;
+import nl.inholland.mysecondapi.services.IbanGenerator;
 import nl.inholland.mysecondapi.services.TransactionService;
 import nl.inholland.mysecondapi.services.UserService;
 import org.springframework.boot.ApplicationArguments;
@@ -22,13 +23,17 @@ public class MyApplicationRunner implements ApplicationRunner {
     private final TransactionService transactionService;
     private final UserService userService;
     private final AccountService accountService;
+    private final IbanGenerator ibanGenerator;
+    private final List<String> usedIbans = new ArrayList<>();
+
 
     public MyApplicationRunner(TransactionService transactionService,
                                UserService userService,
-                               AccountService accountService) {
+                               AccountService accountService, IbanGenerator ibanGenerator) {
         this.transactionService = transactionService;
         this.userService = userService;
         this.accountService = accountService;
+        this.ibanGenerator = ibanGenerator;
     }
 
     @Override
@@ -68,7 +73,7 @@ public class MyApplicationRunner implements ApplicationRunner {
                         UserRole.ROLE_ADMINISTRATOR, false, ApprovalStatus.PENDING, null, null),
                 new User(null, "Sophie", "Jansen", "bsn234567", "sophie@example.com",
                         "0612345671", "Test", dailyLimit, transactionLimit,
-                        UserRole.ROLE_CUSTOMER, true, ApprovalStatus.ACCEPTED, null, null),
+                        UserRole.ROLE_CUSTOMER, true, ApprovalStatus.ACCEPTED, new ArrayList<>(), null),
                 new User(null, "Lucas", "de Vries", "bsn345678", "lucas@example.com",
                         "0612345672", "Test", dailyLimit, transactionLimit,
                         UserRole.ROLE_CUSTOMER, false, ApprovalStatus.DECLINED, null, null),
@@ -92,12 +97,27 @@ public class MyApplicationRunner implements ApplicationRunner {
                         UserRole.ROLE_CUSTOMER, false, ApprovalStatus.ACCEPTED, null, null)
         );
 
-        extraUsers.forEach(userService::createUser);
+        for (User extraUser : extraUsers) {
+            // Eerst user opslaan
+            User savedUser = userService.createUser(extraUser);
+
+            // Als het Sophie is, geef haar rekeningen
+            if ("sophie@example.com".equalsIgnoreCase(savedUser.getEmail())) {
+                Account checking = createCheckingAccount(savedUser);
+                Account savings = createSavingsAccount(savedUser);
+                savedUser.getAccounts().add(checking);
+                savedUser.getAccounts().add(savings);
+            }
+        }
     }
 
+
     private Account createCheckingAccount(User owner) {
+        String iban = ibanGenerator.generateIban(usedIbans);
+        usedIbans.add(iban);
+
         Account account = new Account(
-                null, owner, "IBAN123456789",
+                null, owner, iban,
                 BigDecimal.valueOf(1000), BigDecimal.valueOf(0),
                 AccountType.CHECKING, AccountStatus.ACTIVE,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
@@ -106,8 +126,11 @@ public class MyApplicationRunner implements ApplicationRunner {
     }
 
     private Account createSavingsAccount(User owner) {
+        String iban = ibanGenerator.generateIban(usedIbans);
+        usedIbans.add(iban);
+
         Account account = new Account(
-                null, owner, "IBAN123456788",
+                null, owner, iban,
                 BigDecimal.valueOf(1000), BigDecimal.valueOf(0),
                 AccountType.SAVINGS, AccountStatus.ACTIVE,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
