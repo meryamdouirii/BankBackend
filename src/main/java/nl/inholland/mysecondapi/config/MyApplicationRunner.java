@@ -53,7 +53,7 @@ public class MyApplicationRunner implements ApplicationRunner {
         Account accountSavings = createSavingsAccount(mainUser);
 
         // Create a transaction between accounts
-        createSampleTransaction(accountSavings, accountCheckings, mainUser);
+        createSampleTransaction(accountSavings, accountCheckings, mainUser, TransactionType.INTERNAL_TRANSFER);
     }
 
     private User createMainUser(BigDecimal dailyLimit, BigDecimal transactionLimit) {
@@ -101,10 +101,12 @@ public class MyApplicationRunner implements ApplicationRunner {
             // Eerst user opslaan
             User savedUser = userService.createUser(extraUser);
 
-            // Als het Sophie is, geef haar rekeningen
-            if ("sophie@example.com".equalsIgnoreCase(savedUser.getEmail())) {
+            // Als het een customer is en status is accepted
+            if (savedUser.getRole() == UserRole.ROLE_CUSTOMER && savedUser.getApproval_status() == ApprovalStatus.ACCEPTED) {
                 Account checking = createCheckingAccount(savedUser);
                 Account savings = createSavingsAccount(savedUser);
+                if (savedUser.getAccounts() == null)
+                    savedUser.setAccounts(new ArrayList<>());
                 savedUser.getAccounts().add(checking);
                 savedUser.getAccounts().add(savings);
             }
@@ -138,11 +140,11 @@ public class MyApplicationRunner implements ApplicationRunner {
         return accountService.createAccount(account);
     }
 
-    private void createSampleTransaction(Account fromAccount, Account toAccount, User performer) {
+    private void createSampleTransaction(Account fromAccount, Account toAccount, User performer, TransactionType transactionType) {
         Transaction transaction = new Transaction(
                 null, fromAccount, toAccount,
                 BigDecimal.valueOf(500), LocalDateTime.now(),
-                performer, "Test Transaction"
+                performer, "Test Transaction", transactionType
         );
         transactionService.createTransaction(transaction);
     }
