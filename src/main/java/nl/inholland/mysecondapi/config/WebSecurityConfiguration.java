@@ -48,7 +48,7 @@ public class WebSecurityConfiguration {
                         .requestMatchers("/api/users/deny/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/users").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/users/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/**").permitAll()
                         .requestMatchers("/api/accounts").permitAll()
                         .requestMatchers("/api/transactions/**").permitAll()
                         .requestMatchers("/api/atms").permitAll()
