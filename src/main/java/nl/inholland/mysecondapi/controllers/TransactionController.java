@@ -1,8 +1,15 @@
 package nl.inholland.mysecondapi.controllers;
 
+
+import io.jsonwebtoken.Jwt;
 import nl.inholland.mysecondapi.models.Transaction;
+import nl.inholland.mysecondapi.models.User;
+import nl.inholland.mysecondapi.models.dto.TransactionDTO;
 import nl.inholland.mysecondapi.services.TransactionService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,5 +50,15 @@ public class TransactionController {
     public ResponseEntity<Void> delete(@PathVariable int id) {
         transactionService.deleteTransaction(id);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @GetMapping("/my")
+    public ResponseEntity<List<TransactionDTO>> getUserTransactions() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = (Long) authentication.getDetails();
+
+        System.out.println("User ID from security context: " + userId);
+        return ResponseEntity.ok(transactionService.getTransactionsByUser(userId));
     }
 }

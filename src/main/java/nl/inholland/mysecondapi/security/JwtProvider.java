@@ -46,8 +46,13 @@ public class JwtProvider {
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parser().verifyWith(key).build().parseClaimsJws(token).getPayload();
         String email = claims.getSubject();
+        Long userId = ((Double) claims.get("id")).longValue();
+
         UserDetails userDetails = userDetailsServiceJpa.loadUserByUsername(email);
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        auth.setDetails(userId);
+        return auth; // ✅ Return the auth object with details set
     }
 }
 

@@ -1,6 +1,7 @@
 package nl.inholland.mysecondapi.controllers;
 
 import nl.inholland.mysecondapi.models.Account;
+import nl.inholland.mysecondapi.models.dto.AccountDTO;
 import nl.inholland.mysecondapi.services.AccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,7 @@ public class AccountController {
     public ResponseEntity<List<Account>> getAllAccounts() {return ResponseEntity.ok(this.accountService.getAllAcounts());}
 
     @GetMapping("/{id}")
-    public ResponseEntity<Account> getAccountById(@PathVariable Long id) {
-        //gebruik model maper
+    public ResponseEntity<AccountDTO> getAccountById(@PathVariable Long id) {
         return accountService.getAccountById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
