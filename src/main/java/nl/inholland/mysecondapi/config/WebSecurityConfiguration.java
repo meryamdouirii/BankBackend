@@ -50,7 +50,7 @@ public class WebSecurityConfiguration {
                         .requestMatchers(HttpMethod.GET,"/api/users/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers("/api/accounts").permitAll()
-                        .requestMatchers("/api/transactions").permitAll()
+                        .requestMatchers("/api/transactions/**").permitAll()
                         .requestMatchers("/api/atms").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()

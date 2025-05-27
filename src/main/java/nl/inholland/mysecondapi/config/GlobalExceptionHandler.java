@@ -2,6 +2,7 @@ package nl.inholland.mysecondapi.config;
 
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,18 +14,16 @@ import java.io.IOException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Handle all exceptions except security-related ones
     @ExceptionHandler(Exception.class)
-    public void handleAllExceptions(
-            Exception ex,
-            HttpServletResponse response
-    ) throws Exception {
-        // Check if the exception is one we want to exclude
+    public ResponseEntity<String> handleAllExceptions(Exception ex) throws Exception {
+        // Let Spring Security handle these
         if (ex instanceof AccessDeniedException || ex instanceof AuthenticationException) {
-            throw ex; // Re-throw to let Spring Security handle it
+            throw ex;
         }
 
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        response.getWriter().write("Internal Server Error: " + ex.getMessage());
+        // Let Spring write the body safely
+        return ResponseEntity
+                .status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+                .body("Internal Server Error: " + ex.getMessage());
     }
 }
