@@ -45,12 +45,6 @@ public class MyApplicationRunner implements ApplicationRunner {
         // Create main user with accounts
         User mainUser = createMainUser(dailyLimit, transactionLimit);
 
-        Account accountSavings = new Account(
-                null, null, "IBAN123456788",
-                BigDecimal.valueOf(1000), BigDecimal.valueOf(0),
-                AccountType.SAVINGS, AccountStatus.CLOSED,
-                LocalDateTime.now(), LocalDateTime.now(), null, null
-        );
         // Create additional users
         createAdditionalUsers(dailyLimit, transactionLimit);
 
