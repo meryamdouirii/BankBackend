@@ -2,10 +2,7 @@ package nl.inholland.mysecondapi.controllers;
 
 import nl.inholland.mysecondapi.models.Account;
 import nl.inholland.mysecondapi.models.User;
-import nl.inholland.mysecondapi.models.dto.LoginRequestDTO;
-import nl.inholland.mysecondapi.models.dto.LoginResponseDTO;
-import nl.inholland.mysecondapi.models.dto.RegisterRequestDTO;
-import nl.inholland.mysecondapi.models.dto.UserRequestDTO;
+import nl.inholland.mysecondapi.models.dto.*;
 import nl.inholland.mysecondapi.models.enums.ApprovalStatus;
 import nl.inholland.mysecondapi.models.enums.UserRole;
 import nl.inholland.mysecondapi.services.UserService;
@@ -35,13 +32,13 @@ public class UserController {
 
     // Get all users
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     // Get a user by ID
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -87,7 +84,7 @@ public class UserController {
     }
     @PostMapping("/deny/{id}")
     public ResponseEntity<User> denyUser(@PathVariable Long id) {
-        return this.userService.getUserById(id).map(user ->{
+        return this.userService.getUserEntityById(id).map(user ->{
             user.setApproval_status(ApprovalStatus.DECLINED);
             userService.updateUser(id, user);
             return ResponseEntity.ok(user);
@@ -99,7 +96,7 @@ public class UserController {
     public ResponseEntity<User> handleUserRequest(@RequestBody UserRequestDTO request, @PathVariable Long id) {
         System.out.println("Received request: " + request);
 
-        return userService.getUserById(id).map(user -> {
+        return userService.getUserEntityById(id).map(user -> {
                 user.setApproval_status(ApprovalStatus.ACCEPTED);
                 user.setTransfer_limit(request.getTransferLimit());
                 user.setDaily_limit(request.getDailyLimit());

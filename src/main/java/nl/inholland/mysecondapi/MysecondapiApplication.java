@@ -2,6 +2,7 @@ package nl.inholland.mysecondapi;
 
 import nl.inholland.mysecondapi.config.MyApplicationRunner;
 import nl.inholland.mysecondapi.services.AccountService;
+import nl.inholland.mysecondapi.services.IbanGenerator;
 import nl.inholland.mysecondapi.services.TransactionService;
 import nl.inholland.mysecondapi.services.UserService;
 import org.springframework.boot.SpringApplication;
@@ -17,8 +18,8 @@ public class MysecondapiApplication {
 
 
 	@Bean
-	public MyApplicationRunner myApplicationRunner(TransactionService transactionService, UserService userService, AccountService accountService) {
-		return new MyApplicationRunner(transactionService, userService, accountService);
+	public MyApplicationRunner myApplicationRunner(TransactionService transactionService, UserService userService, AccountService accountService, IbanGenerator ibanGenerator) {
+		return new MyApplicationRunner(transactionService, userService, accountService, ibanGenerator);
 	}
 }
 

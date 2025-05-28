@@ -2,6 +2,7 @@ package nl.inholland.mysecondapi.services;
 
 import nl.inholland.mysecondapi.models.Account;
 import nl.inholland.mysecondapi.models.User;
+import nl.inholland.mysecondapi.models.dto.AccountDTO;
 import nl.inholland.mysecondapi.models.enums.AccountStatus;
 import nl.inholland.mysecondapi.models.enums.AccountType;
 import nl.inholland.mysecondapi.repositories.AccountRepository;
@@ -28,7 +29,10 @@ public class AccountServiceImpl implements AccountService {
     public List<Account> getAllAcounts() {return accountRepository.findAll();}
 
     @Override
-    public Optional<Account> getAccountById(Long id) {return accountRepository.findById(id);}
+    public Optional<AccountDTO> getAccountById(Long id) {
+        return accountRepository.findById(id)
+                .map(AccountDTO::new);
+    }
 
     @Override
     public Account createAccount(Account account) { return this.accountRepository.save(account); }
