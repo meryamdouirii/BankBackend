@@ -50,7 +50,7 @@ public class MyApplicationRunner implements ApplicationRunner {
         Account accountSavings = new Account(
                 null, null, "IBAN123456788",
                 BigDecimal.valueOf(1000), BigDecimal.valueOf(0),
-                AccountType.SAVINGS, AccountStatus.ACTIVE,
+                AccountType.SAVINGS, AccountStatus.CLOSED,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
 
