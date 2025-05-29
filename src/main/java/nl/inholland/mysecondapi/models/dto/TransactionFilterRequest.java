@@ -1,5 +1,6 @@
 package nl.inholland.mysecondapi.models.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class TransactionFilterRequest {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
@@ -15,11 +17,14 @@ public class TransactionFilterRequest {
     private AmountFilterType amountFilterType; // NEW: enum for filter type
     private String ibanContains;
 
-    // Enum for amount filter type
+    @Getter
     public enum AmountFilterType {
-        GREATER,
-        LESS,
-        EQUAL
+        GREATER(0),
+        LESS(1),
+        EQUAL(2);
+
+        private final int code;
+        AmountFilterType(int code) { this.code = code; }
     }
 
 }
