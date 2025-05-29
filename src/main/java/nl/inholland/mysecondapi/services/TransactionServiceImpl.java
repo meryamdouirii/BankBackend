@@ -55,23 +55,23 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public Page<TransactionDTO> getTransactionsByUser(Long id, TransactionFilterRequest filters, Pageable pageable) {
-        // Convert enum to ordinal (int) if your repository uses integers
-        int amountFilterTypeOrdinal = filters.getAmountFilterType() != null
-                ? filters.getAmountFilterType().ordinal()
+        // Use getCode instead of ordinal
+        int amountFilterTypeCode = filters.getAmountFilterType() != null
+                ? filters.getAmountFilterType().getCode()
                 : -1;
+
         Page<Transaction> transactions = transactionRepository.findAllByUserIdWithFilters(
                 id,
                 filters.getStartDate(),
                 filters.getEndDate(),
                 filters.getAmount(),
-                amountFilterTypeOrdinal,
+                amountFilterTypeCode,
                 filters.getIbanContains(),
                 pageable
         );
 
         return transactions.map(this::convertToDTO);
     }
-
     private TransactionDTO convertToDTO(Transaction tx) {
         return new TransactionDTO(
                 tx.getId(),

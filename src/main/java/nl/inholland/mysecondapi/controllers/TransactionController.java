@@ -80,17 +80,9 @@ public class TransactionController {
                 // Handle invalid enum values if needed
             }
         }
-
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Long userId = (Long) authentication.getDetails();
-
-            TransactionFilterRequest filters = new TransactionFilterRequest();
-            filters.setStartDate(startDate);
-            filters.setEndDate(endDate);
-            filters.setAmount(amount);
-            filters.setAmountFilterType(filterType);
-            filters.setIbanContains(ibanContains);
-
+            TransactionFilterRequest filters = new TransactionFilterRequest(startDate, endDate, amount, filterType, ibanContains);
             return ResponseEntity.ok(transactionService.getTransactionsByUser(userId, filters, pageable));
         }
 
