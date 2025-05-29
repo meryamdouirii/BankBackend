@@ -53,6 +53,7 @@ public class WebSecurityConfiguration {
                         .requestMatchers(HttpMethod.GET,"/api/users").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/users/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("EMPLOYEE", "ADMINISTRATOR")
                         .requestMatchers("/api/accounts").permitAll()
                         .requestMatchers("/api/transactions/**").permitAll()
                         .requestMatchers("/api/atms").permitAll()
