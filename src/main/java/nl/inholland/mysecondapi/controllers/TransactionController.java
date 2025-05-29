@@ -2,16 +2,26 @@ package nl.inholland.mysecondapi.controllers;
 
 
 import io.jsonwebtoken.Jwt;
+import lombok.Getter;
+import lombok.Setter;
 import nl.inholland.mysecondapi.models.Transaction;
 import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.dto.TransactionDTO;
+import nl.inholland.mysecondapi.models.dto.TransactionFilterRequest;
 import nl.inholland.mysecondapi.services.TransactionService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Pageable; // Correct import
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -54,11 +64,36 @@ public class TransactionController {
 
 
     @GetMapping("/my")
-    public ResponseEntity<List<TransactionDTO>> getUserTransactions() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long userId = (Long) authentication.getDetails();
+    public ResponseEntity<Page<TransactionDTO>> getUserTransactions(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(required = false) BigDecimal amount,
+            @RequestParam(required = false) String amountFilterType, // Changed to String
+            @RequestParam(required = false) String ibanContains,
+            @PageableDefault(size = 20, sort = "dateTime", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        System.out.println("User ID from security context: " + userId);
-        return ResponseEntity.ok(transactionService.getTransactionsByUser(userId));
+        TransactionFilterRequest.AmountFilterType filterType = null;
+        if (amountFilterType != null) {
+            try {
+                filterType = TransactionFilterRequest.AmountFilterType.valueOf(amountFilterType.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Handle invalid enum values if needed
+            }
+        }
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Long userId = (Long) authentication.getDetails();
+
+            TransactionFilterRequest filters = new TransactionFilterRequest();
+            filters.setStartDate(startDate);
+            filters.setEndDate(endDate);
+            filters.setAmount(amount);
+            filters.setAmountFilterType(filterType);
+            filters.setIbanContains(ibanContains);
+
+            return ResponseEntity.ok(transactionService.getTransactionsByUser(userId, filters, pageable));
+        }
+
+
+
     }
-}

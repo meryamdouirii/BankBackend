@@ -55,7 +55,7 @@ public class WebSecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/api/users/**").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("EMPLOYEE", "ADMINISTRATOR")
                         .requestMatchers("/api/accounts").permitAll()
-                        .requestMatchers("/api/transactions/**").permitAll()
+                        .requestMatchers("/api/transactions/**").authenticated()
                         .requestMatchers("/api/atms").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()

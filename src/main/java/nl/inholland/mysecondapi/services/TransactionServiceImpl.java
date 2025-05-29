@@ -1,9 +1,14 @@
 package nl.inholland.mysecondapi.services;
 
+import nl.inholland.mysecondapi.controllers.TransactionController;
 import nl.inholland.mysecondapi.models.Transaction;
 import nl.inholland.mysecondapi.models.dto.TransactionDTO;
+import nl.inholland.mysecondapi.models.dto.TransactionFilterRequest;
 import nl.inholland.mysecondapi.repositories.TransactionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable; // Correct import
 import org.springframework.stereotype.Service;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -49,18 +54,33 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionDTO> getTransactionsByUser(Long id) {
-        List<Transaction> myTransactions = transactionRepository.findAllByUserId(id);
-        return myTransactions.stream()
-                .map(tx -> new TransactionDTO(
-                        tx.getId(),
-                        tx.getReciever_account().getIBAN(),       // Assuming Account has getIban()
-                        tx.getSender_account().getIBAN(),                   // Passing full Account object
-                        tx.getAmount(),
-                        tx.getDateTime(),
-                        tx.getInitiator().getFirstName() + " " + tx.getInitiator().getLastName(),      // Assuming User has getName()
-                        tx.getDescription()
-                ))
-                .toList();
+    public Page<TransactionDTO> getTransactionsByUser(Long id, TransactionFilterRequest filters, Pageable pageable) {
+        // Convert enum to ordinal (int) if your repository uses integers
+        int amountFilterTypeOrdinal = filters.getAmountFilterType() != null
+                ? filters.getAmountFilterType().ordinal()
+                : -1;
+        Page<Transaction> transactions = transactionRepository.findAllByUserIdWithFilters(
+                id,
+                filters.getStartDate(),
+                filters.getEndDate(),
+                filters.getAmount(),
+                amountFilterTypeOrdinal,
+                filters.getIbanContains(),
+                pageable
+        );
+
+        return transactions.map(this::convertToDTO);
+    }
+
+    private TransactionDTO convertToDTO(Transaction tx) {
+        return new TransactionDTO(
+                tx.getId(),
+                tx.getReciever_account().getIBAN(),
+                tx.getSender_account().getIBAN(),
+                tx.getAmount(),
+                tx.getDateTime(),
+                tx.getInitiator().getFirstName() + " " + tx.getInitiator().getLastName(),
+                tx.getDescription()
+        );
     }
 }
