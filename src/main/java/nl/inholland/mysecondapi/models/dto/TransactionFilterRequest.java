@@ -15,7 +15,7 @@ public class TransactionFilterRequest {
     private LocalDateTime endDate;
     private BigDecimal amount;
     private AmountFilterType amountFilterType; // NEW: enum for filter type
-    private String ibanContains;
+    private String iban;
 
     @Getter
     public enum AmountFilterType {

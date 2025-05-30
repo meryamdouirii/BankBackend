@@ -66,12 +66,13 @@ public class TransactionServiceImpl implements TransactionService {
                 filters.getEndDate(),
                 filters.getAmount(),
                 amountFilterTypeCode,
-                filters.getIbanContains(),
+                filters.getIban(), // Changed from getIbanContains() to getIban()
                 pageable
         );
 
         return transactions.map(this::convertToDTO);
     }
+
     private TransactionDTO convertToDTO(Transaction tx) {
         return new TransactionDTO(
                 tx.getId(),

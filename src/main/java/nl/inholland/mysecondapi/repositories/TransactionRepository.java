@@ -23,15 +23,15 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             "    (:amountFilterType = 0 AND t.amount > :amount) OR " +  // GREATER_THAN
             "    (:amountFilterType = 1 AND t.amount < :amount) OR " +  // LESS_THAN
             "    (:amountFilterType = 2 AND t.amount = :amount)) " +    // EQUAL
-            "AND (:ibanContains IS NULL OR " +
-            "    t.sender_account.IBAN LIKE %:ibanContains% OR " +      // Changed to lowercase iban
-            "    t.reciever_account.IBAN LIKE %:ibanContains%)")        // Changed to lowercase iban
+            "AND (:iban IS NULL OR " +
+            "    t.sender_account.IBAN = :iban OR " +      // Changed to exact match
+            "    t.reciever_account.IBAN = :iban)")        // Changed to exact match
     Page<Transaction> findAllByUserIdWithFilters(
             @Param("userId") Long userId,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,
             @Param("amount") BigDecimal amount,
-            @Param("amountFilterType") int amountFilterType,  // Using int instead of enum
-            @Param("ibanContains") String ibanContains,
+            @Param("amountFilterType") int amountFilterType,
+            @Param("iban") String iban, // Changed parameter name from ibanContains to iban
             Pageable pageable);
 }

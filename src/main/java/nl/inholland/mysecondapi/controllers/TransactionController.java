@@ -69,7 +69,7 @@ public class TransactionController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @RequestParam(required = false) BigDecimal amount,
             @RequestParam(required = false) String amountFilterType, // Changed to String
-            @RequestParam(required = false) String ibanContains,
+            @RequestParam(required = false) String iban,
             @PageableDefault(size = 20, sort = "dateTime", direction = Sort.Direction.DESC) Pageable pageable) {
 
         TransactionFilterRequest.AmountFilterType filterType = null;
@@ -82,7 +82,7 @@ public class TransactionController {
         }
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Long userId = (Long) authentication.getDetails();
-            TransactionFilterRequest filters = new TransactionFilterRequest(startDate, endDate, amount, filterType, ibanContains);
+            TransactionFilterRequest filters = new TransactionFilterRequest(startDate, endDate, amount, filterType, iban);
             return ResponseEntity.ok(transactionService.getTransactionsByUser(userId, filters, pageable));
         }
 
