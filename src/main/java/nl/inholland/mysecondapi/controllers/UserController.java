@@ -122,10 +122,15 @@ public class UserController {
     }
 
     @GetMapping("/find")
-    public ResponseEntity<FindCustomerResponseDTO> findAccountsByName(
-            @RequestParam String name) {  // Changed from @RequestBody
+    public ResponseEntity<?> findAccountsByName(@RequestParam String name) {
+        if (name == null || name.trim().length() < 3) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("The name must be at least 3 characters long.");
+        }
+
         FindCustomerRequestDTO request = new FindCustomerRequestDTO();
-        request.setName(name);
+        request.setName(name.trim());
         return ResponseEntity.ok(userService.findByName(request));
     }
 

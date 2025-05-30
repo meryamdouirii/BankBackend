@@ -95,6 +95,7 @@ public class UserServiceImpl implements UserService {
                                 account.getType().toString(),
                                 account.getOwner().getFirstName() + " " + account.getOwner().getLastName()
                         ))
+                        .limit(10) // Limit to 10 results
                 )
                 .collect(Collectors.toList());
 
