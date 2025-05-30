@@ -81,7 +81,7 @@ public class MyApplicationRunner implements ApplicationRunner {
                 new User(null, "Emma", "Bakker", "bsn456789", "emma@example.com",
                         "0612345673", "Test", dailyLimit, transactionLimit,
                         UserRole.ROLE_CUSTOMER, true, ApprovalStatus.PENDING, null, null),
-                new User(null, "Daan", "Visser", "bsn567890", "daan@example.com",
+                new User(null, "Daan", "Manon", "bsn567890", "daan@example.com",
                         "0612345674", "Test", dailyLimit, transactionLimit,
                         UserRole.ROLE_CUSTOMER, false, ApprovalStatus.ACCEPTED, null, null),
                 new User(null, "Julia", "Smit", "bsn678901", "julia@example.com",

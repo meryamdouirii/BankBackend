@@ -1,9 +1,7 @@
 package nl.inholland.mysecondapi.services;
 
 import nl.inholland.mysecondapi.models.User;
-import nl.inholland.mysecondapi.models.dto.LoginRequestDTO;
-import nl.inholland.mysecondapi.models.dto.LoginResponseDTO;
-import nl.inholland.mysecondapi.models.dto.UserDTO;
+import nl.inholland.mysecondapi.models.dto.*;
 import nl.inholland.mysecondapi.repositories.UserRepository;
 import nl.inholland.mysecondapi.security.JwtProvider;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -81,6 +79,27 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() ->new RuntimeException("User not found"));
     }
 
+    @Override
+    public FindCustomerResponseDTO findByName(FindCustomerRequestDTO request) {
+        // Search for users with matching first or last name
+        List<User> users = userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(
+                request.getName(),
+                request.getName()
+        );
+
+        // Collect all accounts from matching users
+        List<FindCustomerResponseDTO.AccountInfo> accountInfos = users.stream()
+                .flatMap(user -> user.getAccounts().stream()
+                        .map(account -> new FindCustomerResponseDTO.AccountInfo(
+                                account.getIBAN(),
+                                account.getType().toString(),
+                                account.getOwner().getFirstName() + " " + account.getOwner().getLastName()
+                        ))
+                )
+                .collect(Collectors.toList());
+
+        return new FindCustomerResponseDTO(accountInfos);
+    }
     @Override
     public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
         User user = userRepository.findUserByEmail(loginRequestDTO.getEmail()).orElse(null);

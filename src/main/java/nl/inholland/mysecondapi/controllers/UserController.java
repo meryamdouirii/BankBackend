@@ -121,11 +121,12 @@ public class UserController {
 
     }
 
-    @GetMapping("/test-error")
-    @PreAuthorize("hasRole('CUSTOMER')") // Requires ADMINISTRATOR role
-    public String triggerError() {
-        // This code ONLY runs if authorization succeeds
-        throw new NullPointerException("test-error"); // Would return 500
+    @GetMapping("/find")
+    public ResponseEntity<FindCustomerResponseDTO> findAccountsByName(
+            @RequestParam String name) {  // Changed from @RequestBody
+        FindCustomerRequestDTO request = new FindCustomerRequestDTO();
+        request.setName(name);
+        return ResponseEntity.ok(userService.findByName(request));
     }
 
 }
