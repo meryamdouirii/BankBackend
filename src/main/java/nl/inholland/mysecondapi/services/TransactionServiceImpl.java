@@ -65,7 +65,7 @@ public class TransactionServiceImpl implements TransactionService {
                 filters.getEndDate(),
                 filters.getAmount(),
                 amountFilterTypeOrdinal,
-                filters.getIbanContains(),
+                filters.getIban(),
                 pageable
         );
 

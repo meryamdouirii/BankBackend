@@ -74,25 +74,21 @@ public class TransactionController {
             @RequestParam(required = false) BigDecimal amount,
             @RequestParam(required = false) String amountFilterType,
             @RequestParam(required = false) String ibanContains,
-            @PageableDefault(size = 20, sort = "dateTime", direction = Sort.Direction.DESC) Pageable pageable,
-            @AuthenticationPrincipal Jwt jwt
+            @PageableDefault(size = 20, sort = "dateTime", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Long userId = null;
         String role = null;
 
         if (auth != null) {
-
             if (auth.getDetails() instanceof Long) {
                 userId = (Long) auth.getDetails();
             }
-
             if (!auth.getAuthorities().isEmpty()) {
                 role = auth.getAuthorities().iterator().next().getAuthority();
             }
         }
 
-        // Restrict customers to only their own accounts
         if ("ROLE_CUSTOMER".equals(role)) {
             if (!accountService.userHasAccount(userId, accountId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -115,7 +111,6 @@ public class TransactionController {
         return getUserTransactionsInternal(userId, startDate, endDate, amount, amountFilterType, ibanContains, pageable);
     }
 
-
     private ResponseEntity<Page<TransactionDTO>> getUserTransactionsInternal(
             Long userId,
             LocalDateTime startDate,
@@ -133,21 +128,19 @@ public class TransactionController {
                 System.out.println("Invalid amountFilterType: " + amountFilterType);
             }
         }
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            Long userId = (Long) authentication.getDetails();
-            TransactionFilterRequest filters = new TransactionFilterRequest(startDate, endDate, amount, filterType, iban);
-            return ResponseEntity.ok(transactionService.getTransactionsByUser(userId, filters, pageable));
 
-        TransactionFilterRequest filters = new TransactionFilterRequest();
-        filters.setStartDate(startDate);
-        filters.setEndDate(endDate);
-        filters.setAmount(amount);
-        filters.setAmountFilterType(filterType);
-        filters.setIbanContains(ibanContains);
+        TransactionFilterRequest filters = new TransactionFilterRequest(
+                startDate,
+                endDate,
+                amount,
+                filterType,
+                ibanContains
+        );
 
         Page<TransactionDTO> page = transactionService.getTransactionsByUser(userId, filters, pageable);
         return ResponseEntity.ok(page);
     }
+
     private ResponseEntity<Page<TransactionDTO>> getTransactionsForAccountInternal(
             Long accountId,
             LocalDateTime startDate,
@@ -166,16 +159,18 @@ public class TransactionController {
             }
         }
 
-        TransactionFilterRequest filters = new TransactionFilterRequest();
-        filters.setStartDate(startDate);
-        filters.setEndDate(endDate);
-        filters.setAmount(amount);
-        filters.setAmountFilterType(filterType);
-        filters.setIbanContains(ibanContains);
+        TransactionFilterRequest filters = new TransactionFilterRequest(
+                startDate,
+                endDate,
+                amount,
+                filterType,
+                ibanContains
+        );
 
         Page<TransactionDTO> page = transactionService.getTransactionsByAccountId(accountId, filters, pageable);
         return ResponseEntity.ok(page);
     }
+
 
 
 
