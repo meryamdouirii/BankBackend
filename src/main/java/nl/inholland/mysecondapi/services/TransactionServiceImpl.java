@@ -54,6 +54,26 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public Page<TransactionDTO> getTransactionsByAccountId(Long accountId, TransactionFilterRequest filters, Pageable pageable) {
+
+        int amountFilterTypeOrdinal = filters.getAmountFilterType() != null
+                ? filters.getAmountFilterType().ordinal()
+                : -1;
+        Page<Transaction> transactions = transactionRepository.findAllByAccountIdWithFilters(
+                accountId,
+                filters.getStartDate(),
+                filters.getEndDate(),
+                filters.getAmount(),
+                amountFilterTypeOrdinal,
+                filters.getIbanContains(),
+                pageable
+        );
+
+        return transactions.map(this::convertToDTO);
+    }
+
+
+    @Override
     public Page<TransactionDTO> getTransactionsByUser(Long id, TransactionFilterRequest filters, Pageable pageable) {
         // Use getCode instead of ordinal
         int amountFilterTypeCode = filters.getAmountFilterType() != null
@@ -76,6 +96,7 @@ public class TransactionServiceImpl implements TransactionService {
     private TransactionDTO convertToDTO(Transaction tx) {
         return new TransactionDTO(
                 tx.getId(),
+                tx.getSender_account().getId(),
                 tx.getReciever_account().getIBAN(),
                 tx.getSender_account().getIBAN(),
                 tx.getAmount(),

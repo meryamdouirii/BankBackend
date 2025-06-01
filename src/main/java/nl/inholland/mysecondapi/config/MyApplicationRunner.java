@@ -148,7 +148,7 @@ public class MyApplicationRunner implements ApplicationRunner {
 
         for (int i = 0; i < 80; i++) {
             // Generate a random amount between -1000 and 1000
-            double randomAmount = ThreadLocalRandom.current().nextDouble(-1000, 1000);
+            double randomAmount = ThreadLocalRandom.current().nextDouble(0, 1000);
             BigDecimal amount = BigDecimal.valueOf(randomAmount).setScale(2, BigDecimal.ROUND_HALF_UP);
 
             // Generate a random date between startDate and endDate
@@ -164,5 +164,11 @@ public class MyApplicationRunner implements ApplicationRunner {
             );
             transactionService.createTransaction(transaction);
         }
+        Transaction transaction = new Transaction(
+                null, toAccount, fromAccount,
+                BigDecimal.valueOf(500), LocalDateTime.now(),
+                performer, "Test Transaction", transactionType
+        );
+        transactionService.createTransaction(transaction);
     }
 }

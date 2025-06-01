@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
@@ -20,8 +19,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             "AND (:startDate IS NULL OR t.dateTime >= :startDate) " +
             "AND (:endDate IS NULL OR t.dateTime <= :endDate) " +
             "AND (:amount IS NULL OR " +
-            "    (:amountFilterType = 0 AND t.amount > :amount) OR " +  // GREATER_THAN
-            "    (:amountFilterType = 1 AND t.amount < :amount) OR " +  // LESS_THAN
+            "    (:amountFilterType = 0 AND t.amount > :amount) OR " +  // GREATER
+            "    (:amountFilterType = 1 AND t.amount < :amount) OR " +  // LESS
             "    (:amountFilterType = 2 AND t.amount = :amount)) " +    // EQUAL
             "AND (:iban IS NULL OR " +
             "    t.sender_account.IBAN = :iban OR " +      // Changed to exact match

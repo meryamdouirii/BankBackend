@@ -89,6 +89,18 @@ public class AccountServiceImpl implements AccountService {
 
         return accounts;
     }
+    @Override
+    public boolean userHasAccount(Long userId, Long accountId) {
+        Optional<Account> accountOpt = accountRepository.findById(accountId);
+
+        if (accountOpt.isEmpty()) {
+            return false;
+        }
+
+        Account account = accountOpt.get();
+
+        return account.getOwner().getId().equals(userId); // or getCustomer().getId()
+    }
 
 
 }

@@ -42,7 +42,7 @@ public class WebSecurityConfiguration {
                 .headers(headers-> headers.frameOptions(frameOptionsConfig-> frameOptionsConfig.sameOrigin()))
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth //dit moeten we echt nog even goed structureren
                         .requestMatchers("/api/users/login").permitAll()
                         .requestMatchers("/api/users/approve/{id}").permitAll()
                         .requestMatchers("/api/users/deny/{id}").permitAll()
@@ -56,6 +56,7 @@ public class WebSecurityConfiguration {
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("EMPLOYEE", "ADMINISTRATOR")
                         .requestMatchers("/api/accounts").permitAll()
                         .requestMatchers("/api/transactions/**").authenticated()
+                        .requestMatchers("/api/transactions/user/{id}").hasAnyRole("EMPLOYEE", "ADMINISTRATOR")
                         .requestMatchers("/api/atms").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()

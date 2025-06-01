@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TransactionDTO {
     private Long id;
+    private Long sender_id;
     private String receiver_iban;
     private String sender_iban;
     private BigDecimal amount;

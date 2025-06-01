@@ -20,5 +20,6 @@ public interface AccountService {
     Account updateAccount(Long id, Account account);
     void deleteAccount(Long id);
     List <Account> createStarterAccounts(User user, BigDecimal absoluteLimitCheckings, BigDecimal absoluteLimitSavings);
+    boolean userHasAccount(Long userId, Long accountId);
 
 }
