@@ -15,7 +15,7 @@ import java.util.List;
 public class AccountController {
 
     private final AccountService accountService;
-    ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
     public AccountController(AccountService accountService) {
         this.accountService = accountService;
@@ -41,5 +41,6 @@ public class AccountController {
     public ResponseEntity<Account> updateAccount(@PathVariable Long id, @RequestBody Account account) {
         return ResponseEntity.ok(accountService.updateAccount(id,account));
     }
+
 
 }

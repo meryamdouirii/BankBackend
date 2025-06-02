@@ -19,6 +19,9 @@ public class AccountDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Long ownerId; // to reference the User entity by ID
+    private String ownerFirstName;
+    private String ownerLastName;
+    private String ownerBsn;
 
     public AccountDTO(Account account) {
         this.id = account.getId();
@@ -29,5 +32,9 @@ public class AccountDTO {
         this.status = account.getStatus();
         this.createdAt = account.getCreatedAt();
         this.updatedAt = account.getUpdatedAt();
+        this.ownerId = account.getOwner().getId();
+        this.ownerFirstName = account.getOwner().getFirstName();
+        this.ownerLastName = account.getOwner().getLastName();
+        this.ownerBsn = account.getOwner().getBsn();
     }
 }
