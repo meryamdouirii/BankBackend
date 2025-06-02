@@ -2,6 +2,7 @@ package nl.inholland.mysecondapi.services;
 
 import nl.inholland.mysecondapi.models.Account;
 import nl.inholland.mysecondapi.models.User;
+import nl.inholland.mysecondapi.models.dto.AccountDTO;
 import nl.inholland.mysecondapi.models.enums.AccountStatus;
 import nl.inholland.mysecondapi.models.enums.AccountType;
 
@@ -14,10 +15,11 @@ import java.util.Optional;
 public interface AccountService {
 
     List<Account> getAllAcounts();
-    Optional<Account> getAccountById(Long id);
+    Optional<AccountDTO> getAccountById(Long id);
     Account createAccount(Account account);
     Account updateAccount(Long id, Account account);
     void deleteAccount(Long id);
     List <Account> createStarterAccounts(User user, BigDecimal absoluteLimitCheckings, BigDecimal absoluteLimitSavings);
+    boolean userHasAccount(Long userId, Long accountId);
 
 }

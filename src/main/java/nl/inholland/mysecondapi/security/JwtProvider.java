@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import nl.inholland.mysecondapi.models.enums.UserRole;
 import nl.inholland.mysecondapi.services.UserDetailsServiceJpa;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -44,10 +45,22 @@ public class JwtProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parser().verifyWith(key).build().parseClaimsJws(token).getPayload();
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseClaimsJws(token)
+                .getPayload();
         String email = claims.getSubject();
+        Long userId = ((Number) claims.get("id")).longValue();
+        if (email == null || userId == null) {
+            throw new BadCredentialsException("Invalid JWT: Missing email or ID");
+        }
+
         UserDetails userDetails = userDetailsServiceJpa.loadUserByUsername(email);
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        auth.setDetails(userId);
+        return auth; // ✅ Return the auth object with details set
     }
 }
 

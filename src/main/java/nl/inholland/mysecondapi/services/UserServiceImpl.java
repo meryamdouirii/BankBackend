@@ -1,16 +1,15 @@
 package nl.inholland.mysecondapi.services;
 
 import nl.inholland.mysecondapi.models.User;
-import nl.inholland.mysecondapi.models.dto.LoginRequestDTO;
-import nl.inholland.mysecondapi.models.dto.LoginResponseDTO;
+import nl.inholland.mysecondapi.models.dto.*;
 import nl.inholland.mysecondapi.repositories.UserRepository;
 import nl.inholland.mysecondapi.security.JwtProvider;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.naming.AuthenticationException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -23,13 +22,22 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, JwtProvider jwtProvider) {
         this.userRepository = userRepository; this.bCryptPasswordEncoder = bCryptPasswordEncoder; this.jwtProvider = jwtProvider;
     }
+
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(UserDTO::new)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<User> getUserById(Long id) {
+    public Optional<UserDTO> getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(UserDTO::new);
+    }
+
+    @Override
+    public Optional<User> getUserEntityById(Long id) {
         return userRepository.findById(id);
     }
 
@@ -48,6 +56,10 @@ public class UserServiceImpl implements UserService {
                 .map(existingUser->{
                     existingUser.setFirstName(updatedUser.getFirstName());
                     existingUser.setLastName(updatedUser.getLastName());
+                    existingUser.setDaily_limit(updatedUser.getDaily_limit());
+                    existingUser.setTransfer_limit(updatedUser.getTransfer_limit());
+                    existingUser.setAccounts(updatedUser.getAccounts());
+                    existingUser.setApproval_status(updatedUser.getApproval_status());
                     existingUser.setEmail(updatedUser.getEmail());
                     existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
                     return userRepository.save(existingUser);
@@ -67,6 +79,28 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() ->new RuntimeException("User not found"));
     }
 
+    @Override
+    public FindCustomerResponseDTO findByName(FindCustomerRequestDTO request) {
+        // Search for users with matching first or last name
+        List<User> users = userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(
+                request.getName(),
+                request.getName()
+        );
+
+        // Collect all accounts from matching users
+        List<FindCustomerResponseDTO.AccountInfo> accountInfos = users.stream()
+                .flatMap(user -> user.getAccounts().stream()
+                        .map(account -> new FindCustomerResponseDTO.AccountInfo(
+                                account.getIBAN(),
+                                account.getType().toString(),
+                                account.getOwner().getFirstName() + " " + account.getOwner().getLastName()
+                        ))
+                        .limit(10) // Limit to 10 results
+                )
+                .collect(Collectors.toList());
+
+        return new FindCustomerResponseDTO(accountInfos);
+    }
     @Override
     public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
         User user = userRepository.findUserByEmail(loginRequestDTO.getEmail()).orElse(null);
