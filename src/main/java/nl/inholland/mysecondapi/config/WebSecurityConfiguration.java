@@ -43,21 +43,21 @@ public class WebSecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth //dit moeten we echt nog even goed structureren
-                        .requestMatchers("/api/users/login").permitAll()
-                        .requestMatchers("/api/users/approve/{id}").permitAll()
-                        .requestMatchers("/api/users/deny/{id}").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/users/{id}").permitAll()
-                        .requestMatchers("/api/accounts/{id}").hasAnyRole("EMPLOYEE", "ADMINISTRATOR")
-                        .requestMatchers(HttpMethod.GET,"/api/users/**").hasAnyRole("EMPLOYEE", "ADMINISTRATOR")
-                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/users").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/users/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users/**").permitAll()
+                        .requestMatchers("/api/users/login").permitAll() //log in post & get
+                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll() //Make new user / register
+
+                        .requestMatchers("/api/users/approve/{id}").hasAnyRole("EMPLOYEE", "ADMINISTRATOR") //aprove customer acc
+                        .requestMatchers("/api/users/deny/{id}").hasAnyRole("EMPLOYEE", "ADMINISTRATOR") //deny customer acc
+
+                        .requestMatchers(HttpMethod.GET,"/api/users/{id}").authenticated()
+                        .requestMatchers(HttpMethod.PUT,"/api/accounts/{id}").authenticated()
+                        .requestMatchers(HttpMethod.GET,"/api/users/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,"/api/users").permitAll()   //meerdere api endpoints ivm verschillende update rechten??
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("EMPLOYEE", "ADMINISTRATOR")
-                        .requestMatchers("/api/accounts").permitAll()
+                        .requestMatchers("/api/accounts").authenticated()
                         .requestMatchers("/api/transactions/**").authenticated()
-                        .requestMatchers("/api/transactions/user/{id}").hasAnyRole("EMPLOYEE", "ADMINISTRATOR")
-                        .requestMatchers("/api/atms").permitAll()
+
+                        //dit weghalen bij inleveren
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()
                         .requestMatchers("v3/**").permitAll()

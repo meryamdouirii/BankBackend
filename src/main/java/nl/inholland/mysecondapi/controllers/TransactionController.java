@@ -1,11 +1,7 @@
 package nl.inholland.mysecondapi.controllers;
 
 
-import io.jsonwebtoken.Jwt;
-import lombok.Getter;
-import lombok.Setter;
 import nl.inholland.mysecondapi.models.Transaction;
-import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.dto.TransactionDTO;
 import nl.inholland.mysecondapi.models.dto.TransactionFilterRequest;
 import nl.inholland.mysecondapi.services.AccountService;
@@ -17,7 +13,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -96,49 +91,6 @@ public class TransactionController {
         }
 
         return getTransactionsForAccountInternal(accountId, startDate, endDate, amount, amountFilterType, ibanContains, pageable);
-    }
-
-    @GetMapping("/my")
-    public ResponseEntity<Page<TransactionDTO>> getOwnTransactions(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            @RequestParam(required = false) BigDecimal amount,
-            @RequestParam(required = false) String amountFilterType,
-            @RequestParam(required = false) String ibanContains,
-            @PageableDefault(size = 20, sort = "dateTime", direction = Sort.Direction.DESC) Pageable pageable
-    ) {
-        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getDetails();
-        return getUserTransactionsInternal(userId, startDate, endDate, amount, amountFilterType, ibanContains, pageable);
-    }
-
-    private ResponseEntity<Page<TransactionDTO>> getUserTransactionsInternal(
-            Long userId,
-            LocalDateTime startDate,
-            LocalDateTime endDate,
-            BigDecimal amount,
-            String amountFilterType,
-            String ibanContains,
-            Pageable pageable
-    ) {
-        TransactionFilterRequest.AmountFilterType filterType = null;
-        if (amountFilterType != null) {
-            try {
-                filterType = TransactionFilterRequest.AmountFilterType.valueOf(amountFilterType.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                System.out.println("Invalid amountFilterType: " + amountFilterType);
-            }
-        }
-
-        TransactionFilterRequest filters = new TransactionFilterRequest(
-                startDate,
-                endDate,
-                amount,
-                filterType,
-                ibanContains
-        );
-
-        Page<TransactionDTO> page = transactionService.getTransactionsByUser(userId, filters, pageable);
-        return ResponseEntity.ok(page);
     }
 
     private ResponseEntity<Page<TransactionDTO>> getTransactionsForAccountInternal(

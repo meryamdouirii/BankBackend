@@ -20,7 +20,6 @@ public class UserDTO {
     private String bsn;
     private String email;
     private String phoneNumber;
-    private String hashed_password;
     private BigDecimal daily_limit;
     private BigDecimal transfer_limit;
     private UserRole role;
@@ -35,7 +34,6 @@ public class UserDTO {
         this.bsn = user.getBsn();
         this.email = user.getEmail();
         this.phoneNumber = user.getPhoneNumber();
-        this.hashed_password = user.getHashed_password();
         this.daily_limit = user.getDaily_limit();
         this.transfer_limit = user.getTransfer_limit();
         this.role = user.getRole();
