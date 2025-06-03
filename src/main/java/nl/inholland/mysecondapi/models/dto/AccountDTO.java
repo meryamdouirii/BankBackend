@@ -25,7 +25,7 @@ public class AccountDTO {
 
     public AccountDTO(Account account) {
         this.id = account.getId();
-        this.IBAN = account.getIBAN();
+        this.IBAN = account.getIban();
         this.balance = account.getBalance();
         this.accountLimit = account.getAccountLimit();
         this.type = account.getType();

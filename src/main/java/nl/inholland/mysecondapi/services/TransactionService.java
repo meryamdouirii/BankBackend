@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface TransactionService {
     List<TransactionDTO> getAllTransactions();
     Optional<Transaction> getTransactionById(int id);
-    Transaction createTransaction(Transaction transaction);
+    TransactionDTO createTransaction(Transaction transaction);
     Transaction updateTransaction(int id, Transaction transaction);
     void deleteTransaction(int id);
     Page<TransactionDTO> getTransactionsByUser(Long id, TransactionFilterRequest filters, Pageable pageable);

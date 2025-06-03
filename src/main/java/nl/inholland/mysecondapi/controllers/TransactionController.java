@@ -46,7 +46,7 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<Transaction> create(@RequestBody Transaction transaction) {
+    public ResponseEntity<TransactionDTO> create(@RequestBody Transaction transaction) {
         return ResponseEntity.ok(transactionService.createTransaction(transaction));
     }
 

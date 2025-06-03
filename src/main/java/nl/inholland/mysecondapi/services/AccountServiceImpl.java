@@ -57,7 +57,7 @@ public class AccountServiceImpl implements AccountService {
     }
     public Account createAccountByType(User user,AccountType type, BigDecimal absoluteLimit) {
         List<String> usedIbans = this.getAllAcounts().stream()
-                .map(Account::getIBAN)
+                .map(Account::getIban)
                 .toList();
         return new Account(
                 null,

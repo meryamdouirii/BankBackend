@@ -30,7 +30,7 @@ public class Account {
     @JsonBackReference
     private User owner;
 
-    private String IBAN;
+    private String iban;
     private BigDecimal balance;
     private BigDecimal accountLimit;
     private AccountType type;

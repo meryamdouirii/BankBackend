@@ -23,8 +23,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             "    (:amountFilterType = 1 AND t.amount < :amount) OR " +  // LESS
             "    (:amountFilterType = 2 AND t.amount = :amount)) " +    // EQUAL
             "AND (:ibanContains IS NULL OR " +
-            "    t.sender_account.IBAN LIKE %:ibanContains% OR " +
-            "    t.reciever_account.IBAN LIKE %:ibanContains%)")
+            "    t.sender_account.iban LIKE %:ibanContains% OR " +
+            "    t.reciever_account.iban LIKE %:ibanContains%)")
     Page<Transaction> findAllByUserIdWithFilters(
             @Param("userId") Long userId,
             @Param("startDate") LocalDateTime startDate,
@@ -44,8 +44,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             "    (:amountFilterType = 1 AND t.amount < :amount) OR " +
             "    (:amountFilterType = 2 AND t.amount = :amount)) " +
             "AND (:ibanContains IS NULL OR " +
-            "    t.sender_account.IBAN LIKE %:ibanContains% OR " +
-            "    t.reciever_account.IBAN LIKE %:ibanContains%)")
+            "    t.sender_account.iban LIKE %:ibanContains% OR " +
+            "    t.reciever_account.iban LIKE %:ibanContains%)")
     Page<Transaction> findAllByAccountIdWithFilters(
             @Param("accountId") Long accountId,
             @Param("startDate") LocalDateTime startDate,

@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
         List<FindCustomerResponseDTO.AccountInfo> accountInfos = users.stream()
                 .flatMap(user -> user.getAccounts().stream()
                         .map(account -> new FindCustomerResponseDTO.AccountInfo(
-                                account.getIBAN(),
+                                account.getIban(),
                                 account.getType().toString(),
                                 account.getOwner().getFirstName() + " " + account.getOwner().getLastName()
                         ))
