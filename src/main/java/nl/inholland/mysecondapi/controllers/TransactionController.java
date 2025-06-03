@@ -34,7 +34,7 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Transaction>> getAll() {
+    public ResponseEntity<List<TransactionDTO>> getAll() {
         return ResponseEntity.ok(transactionService.getAllTransactions());
     }
 

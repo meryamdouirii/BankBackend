@@ -55,7 +55,7 @@ public class WebSecurityConfiguration {
                         .requestMatchers(HttpMethod.GET,"/api/users").permitAll()   //meerdere api endpoints ivm verschillende update rechten??
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("EMPLOYEE", "ADMINISTRATOR")
                         .requestMatchers("/api/accounts").authenticated()
-                        .requestMatchers("/api/transactions/**").authenticated()
+                        .requestMatchers("/api/transactions/**").permitAll() //anders doet hij het niet
 
                         //dit weghalen bij inleveren
                         .requestMatchers("/h2-console/**").permitAll()

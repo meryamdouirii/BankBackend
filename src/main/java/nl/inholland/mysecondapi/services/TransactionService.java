@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TransactionService {
-    List<Transaction> getAllTransactions();
+    List<TransactionDTO> getAllTransactions();
     Optional<Transaction> getTransactionById(int id);
     Transaction createTransaction(Transaction transaction);
     Transaction updateTransaction(int id, Transaction transaction);

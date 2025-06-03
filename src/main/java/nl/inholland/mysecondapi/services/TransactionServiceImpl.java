@@ -23,8 +23,19 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
+    public List<TransactionDTO> getAllTransactions() {
+        return transactionRepository.findAll().stream()
+                .map(tx -> new TransactionDTO(
+                        tx.getId(),
+                        tx.getSender_account().getId(),
+                        tx.getReciever_account().getIBAN(),
+                        tx.getSender_account().getIBAN(),
+                        tx.getAmount(),
+                        tx.getDateTime(),
+                        tx.getInitiator().getFirstName() + " " + tx.getInitiator().getLastName(),
+                        tx.getDescription()
+                ))
+                .toList();
     }
 
     @Override
