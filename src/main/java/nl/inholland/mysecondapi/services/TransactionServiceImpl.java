@@ -1,15 +1,21 @@
 package nl.inholland.mysecondapi.services;
 
 import nl.inholland.mysecondapi.controllers.TransactionController;
+import nl.inholland.mysecondapi.models.Account;
 import nl.inholland.mysecondapi.models.Transaction;
 import nl.inholland.mysecondapi.models.dto.TransactionDTO;
 import nl.inholland.mysecondapi.models.dto.TransactionFilterRequest;
+import nl.inholland.mysecondapi.repositories.AccountRepository;
 import nl.inholland.mysecondapi.repositories.TransactionRepository;
+import nl.inholland.mysecondapi.repositories.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable; // Correct import
 import org.springframework.stereotype.Service;
+import nl.inholland.mysecondapi.models.enums.TransactionType;
 
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,9 +23,11 @@ import java.util.Optional;
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
+    private final AccountRepository accountRepository;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository, AccountRepository accountRepository) {
         this.transactionRepository = transactionRepository;
+        this.accountRepository = accountRepository;
     }
 
     @Override
@@ -45,8 +53,38 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public Transaction createTransaction(Transaction transaction) {
+        Account sender = accountRepository.findById(transaction.getSender_account().getId())
+                .orElseThrow(() -> new RuntimeException("Sender account not found"));
+
+        Account receiver = null;
+        if (transaction.getTransaction_type() == TransactionType.INTERNAL_TRANSFER){
+            receiver = accountRepository.findById(transaction.getReciever_account().getId())
+                    .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+        }
+
+        BigDecimal amount = transaction.getAmount();
+
+        // Validatie: genoeg saldo?
+        if (sender.getBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient balance");
+        }
+
+        // Balans bijwerken
+        sender.setBalance(sender.getBalance().subtract(amount));
+        accountRepository.save(sender);
+
+        if (receiver != null) {
+            receiver.setBalance(receiver.getBalance().add(amount));
+            accountRepository.save(receiver);
+        }
+
+        transaction.setSender_account(sender);
+        transaction.setReciever_account(receiver);
+        transaction.setDateTime(LocalDateTime.now());
+
         return transactionRepository.save(transaction);
     }
+
 
     @Override
     public Transaction updateTransaction(int id, Transaction updatedTransaction) {
