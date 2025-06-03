@@ -45,7 +45,7 @@ public class WebSecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth //dit moeten we echt nog even goed structureren
                         .requestMatchers("/api/users/login").permitAll() //log in post & get
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll() //Make new user / register
-
+                        .requestMatchers(HttpMethod.GET, "/api/users").permitAll() //kik
                         .requestMatchers("/api/users/approve/{id}").hasAnyRole("EMPLOYEE", "ADMINISTRATOR") //aprove customer acc
                         .requestMatchers("/api/users/deny/{id}").hasAnyRole("EMPLOYEE", "ADMINISTRATOR") //deny customer acc
 

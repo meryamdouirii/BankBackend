@@ -54,7 +54,7 @@ public class MyApplicationRunner implements ApplicationRunner {
         Account accountSavings = createSavingsAccount(mainUser);
 
         // Create a transaction between accounts
-        createSampleTransaction(accountSavings, accountCheckings, mainUser, TransactionType.INTERNAL_TRANSFER);
+//        createSampleTransaction(accountSavings, accountCheckings, mainUser, TransactionType.INTERNAL_TRANSFER);
     }
 
     private User createMainUser(BigDecimal dailyLimit, BigDecimal transactionLimit) {
@@ -141,34 +141,34 @@ public class MyApplicationRunner implements ApplicationRunner {
         return accountService.createAccount(account);
     }
 
-    private void createSampleTransaction(Account fromAccount, Account toAccount, User performer, TransactionType transactionType) {
-        // Define date range: from one year ago until now
-        LocalDateTime startDate = LocalDateTime.now().minusYears(1);
-        LocalDateTime endDate = LocalDateTime.now();
-
-        for (int i = 0; i < 80; i++) {
-            // Generate a random amount between -1000 and 1000
-            double randomAmount = ThreadLocalRandom.current().nextDouble(0, 1000);
-            BigDecimal amount = BigDecimal.valueOf(randomAmount).setScale(2, BigDecimal.ROUND_HALF_UP);
-
-            // Generate a random date between startDate and endDate
-            long startEpoch = startDate.toEpochSecond(java.time.ZoneOffset.UTC);
-            long endEpoch = endDate.toEpochSecond(java.time.ZoneOffset.UTC);
-            long randomEpoch = ThreadLocalRandom.current().nextLong(startEpoch, endEpoch);
-            LocalDateTime randomDate = LocalDateTime.ofEpochSecond(randomEpoch, 0, java.time.ZoneOffset.UTC);
-
-            Transaction transaction = new Transaction(
-                    null, fromAccount, toAccount,
-                    amount, randomDate,
-                    performer, "Test Transaction", transactionType
-            );
-            transactionService.createTransaction(transaction);
-        }
-        Transaction transaction = new Transaction(
-                null, toAccount, fromAccount,
-                BigDecimal.valueOf(500), LocalDateTime.now(),
-                performer, "Test Transaction", transactionType
-        );
-        transactionService.createTransaction(transaction);
-    }
+//    private void createSampleTransaction(Account fromAccount, Account toAccount, User performer, TransactionType transactionType) {
+//        // Define date range: from one year ago until now
+//        LocalDateTime startDate = LocalDateTime.now().minusYears(1);
+//        LocalDateTime endDate = LocalDateTime.now();
+//
+//        for (int i = 0; i < 80; i++) {
+//            // Generate a random amount between -1000 and 1000
+//            double randomAmount = ThreadLocalRandom.current().nextDouble(0, 1000);
+//            BigDecimal amount = BigDecimal.valueOf(randomAmount).setScale(2, BigDecimal.ROUND_HALF_UP);
+//
+//            // Generate a random date between startDate and endDate
+//            long startEpoch = startDate.toEpochSecond(java.time.ZoneOffset.UTC);
+//            long endEpoch = endDate.toEpochSecond(java.time.ZoneOffset.UTC);
+//            long randomEpoch = ThreadLocalRandom.current().nextLong(startEpoch, endEpoch);
+//            LocalDateTime randomDate = LocalDateTime.ofEpochSecond(randomEpoch, 0, java.time.ZoneOffset.UTC);
+//
+//            Transaction transaction = new Transaction(
+//                    null, fromAccount, toAccount,
+//                    amount, randomDate,
+//                    performer, "Test Transaction", transactionType
+//            );
+//            transactionService.createTransaction(transaction);
+//        }
+//        Transaction transaction = new Transaction(
+//                null, toAccount, fromAccount,
+//                BigDecimal.valueOf(500), LocalDateTime.now(),
+//                performer, "Test Transaction", transactionType
+//        );
+//        transactionService.createTransaction(transaction);
+//    }
 }
