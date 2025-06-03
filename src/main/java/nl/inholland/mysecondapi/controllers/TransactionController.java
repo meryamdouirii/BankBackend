@@ -68,7 +68,7 @@ public class TransactionController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @RequestParam(required = false) BigDecimal amount,
             @RequestParam(required = false) String amountFilterType,
-            @RequestParam(required = false) String ibanContains,
+            @RequestParam(required = false) String iban,
             @PageableDefault(size = 20, sort = "dateTime", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -90,7 +90,7 @@ public class TransactionController {
             }
         }
 
-        return getTransactionsForAccountInternal(accountId, startDate, endDate, amount, amountFilterType, ibanContains, pageable);
+        return getTransactionsForAccountInternal(accountId, startDate, endDate, amount, amountFilterType, iban, pageable);
     }
 
     private ResponseEntity<Page<TransactionDTO>> getTransactionsForAccountInternal(
