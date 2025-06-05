@@ -8,8 +8,10 @@ import nl.inholland.mysecondapi.models.dto.TransactionFilterRequest;
 import nl.inholland.mysecondapi.repositories.AccountRepository;
 import nl.inholland.mysecondapi.repositories.TransactionRepository;
 import nl.inholland.mysecondapi.repositories.UserRepository;
+import nl.inholland.mysecondapi.specifications.TransactionSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable; // Correct import
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import nl.inholland.mysecondapi.models.enums.TransactionType;
 
@@ -115,19 +117,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public Page<TransactionDTO> getTransactionsByAccountId(Long accountId, TransactionFilterRequest filters, Pageable pageable) {
 
-        int amountFilterTypeOrdinal = filters.getAmountFilterType() != null
-                ? filters.getAmountFilterType().ordinal()
-                : -1;
-        Page<Transaction> transactions = transactionRepository.findAllByAccountIdWithFilters(
-                accountId,
-                filters.getStartDate(),
-                filters.getEndDate(),
-                filters.getAmount(),
-                amountFilterTypeOrdinal,
-                filters.getIban(),
-                pageable
-        );
 
+        Specification<Transaction> spec = TransactionSpecifications.buildSpecification(accountId, filters);
+        Page<Transaction> transactions = transactionRepository.findAll(spec, pageable);
         return transactions.map(this::convertToDTO);
     }
 
