@@ -16,7 +16,6 @@ public interface TransactionService {
     TransactionDTO createTransaction(Transaction transaction);
     Transaction updateTransaction(int id, Transaction transaction);
     void deleteTransaction(int id);
-    Page<TransactionDTO> getTransactionsByUser(Long id, TransactionFilterRequest filters, Pageable pageable);
     Page<TransactionDTO> getTransactionsByAccountId(Long accountId, TransactionFilterRequest filters, Pageable pageable);
 
     }
