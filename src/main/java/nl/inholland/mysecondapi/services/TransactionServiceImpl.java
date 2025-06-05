@@ -131,27 +131,6 @@ public class TransactionServiceImpl implements TransactionService {
         return transactions.map(this::convertToDTO);
     }
 
-
-    @Override
-    public Page<TransactionDTO> getTransactionsByUser(Long id, TransactionFilterRequest filters, Pageable pageable) {
-        // Use getCode instead of ordinal
-        int amountFilterTypeCode = filters.getAmountFilterType() != null
-                ? filters.getAmountFilterType().getCode()
-                : -1;
-
-        Page<Transaction> transactions = transactionRepository.findAllByUserIdWithFilters(
-                id,
-                filters.getStartDate(),
-                filters.getEndDate(),
-                filters.getAmount(),
-                amountFilterTypeCode,
-                filters.getIban(), // Changed from getIbanContains() to getIban()
-                pageable
-        );
-
-        return transactions.map(this::convertToDTO);
-    }
-
     private TransactionDTO convertToDTO(Transaction tx) {
         return new TransactionDTO(
                 tx.getId(),

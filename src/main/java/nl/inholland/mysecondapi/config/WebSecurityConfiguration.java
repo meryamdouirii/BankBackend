@@ -51,6 +51,7 @@ public class WebSecurityConfiguration {
 
                         .requestMatchers(HttpMethod.GET,"/api/users/{id}").authenticated()
                         .requestMatchers(HttpMethod.PUT,"/api/accounts/{id}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/accounts/{id}").authenticated()
                         .requestMatchers(HttpMethod.GET,"/api/users/**").authenticated()
                         .requestMatchers(HttpMethod.GET,"/api/users").permitAll()   //meerdere api endpoints ivm verschillende update rechten??
                         .requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("EMPLOYEE", "ADMINISTRATOR")
