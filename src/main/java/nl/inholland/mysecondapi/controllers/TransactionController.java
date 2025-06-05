@@ -62,7 +62,7 @@ public class TransactionController {
     }
 
     @GetMapping("/account/{id}")
-    public ResponseEntity<Page<TransactionDTO>> getTransactionsForAccount(
+    public ResponseEntity<Page<TransactionDTO>> getTransactionsForUser(
             @PathVariable("id") Long accountId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
