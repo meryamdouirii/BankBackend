@@ -3,6 +3,7 @@ package nl.inholland.mysecondapi.models.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import nl.inholland.mysecondapi.models.enums.AmountFilterType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,14 +18,6 @@ public class TransactionFilterRequest {
     private AmountFilterType amountFilterType; // NEW: enum for filter type
     private String iban;
 
-    @Getter
-    public enum AmountFilterType {
-        GREATER(0),
-        LESS(1),
-        EQUAL(2);
 
-        private final int code;
-        AmountFilterType(int code) { this.code = code; }
-    }
 
 }
