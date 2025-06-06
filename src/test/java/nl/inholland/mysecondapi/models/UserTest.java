@@ -28,7 +28,7 @@ class UserTest {
         user.setDaily_limit(new BigDecimal("2000"));
         user.setTransfer_limit(new BigDecimal("1000"));
         user.setRole(UserRole.ROLE_CUSTOMER);
-        user.set_active(true);
+        user.setActive(true);
         user.setApproval_status(ApprovalStatus.PENDING);
 
         user.setAccounts(new ArrayList<>());
@@ -51,7 +51,7 @@ class UserTest {
         assertEquals(new BigDecimal("2000"), user.getDaily_limit());
         assertEquals(new BigDecimal("1000"), user.getTransfer_limit());
         assertEquals(UserRole.ROLE_CUSTOMER, user.getRole());
-        assertTrue(user.is_active());
+        assertTrue(user.isActive());
         assertEquals(ApprovalStatus.PENDING, user.getApproval_status());
     }
 

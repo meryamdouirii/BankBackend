@@ -1,7 +1,5 @@
 package nl.inholland.mysecondapi.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,7 +31,7 @@ public class User {
     private BigDecimal daily_limit;
     private BigDecimal transfer_limit;
     private UserRole role;
-    private boolean is_active;
+    private boolean active;
     private ApprovalStatus approval_status;
 
     @OneToMany(mappedBy="owner")

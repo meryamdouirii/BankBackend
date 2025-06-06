@@ -50,11 +50,15 @@ public class JwtProvider {
                 .build()
                 .parseClaimsJws(token)
                 .getPayload();
+
         String email = claims.getSubject();
-        Long userId = ((Number) claims.get("id")).longValue();
-        if (email == null || userId == null) {
+        Object idClaim = claims.get("id");
+
+        if (email == null || !(idClaim instanceof Number)) {
             throw new BadCredentialsException("Invalid JWT: Missing email or ID");
         }
+
+        Long userId = ((Number) idClaim).longValue();
 
         UserDetails userDetails = userDetailsServiceJpa.loadUserByUsername(email);
         UsernamePasswordAuthenticationToken auth =

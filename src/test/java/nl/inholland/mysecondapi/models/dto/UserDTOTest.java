@@ -23,7 +23,7 @@ class UserDTOTest {
         user.setDaily_limit(BigDecimal.valueOf(500));
         user.setTransfer_limit(BigDecimal.valueOf(1000));
         user.setRole(UserRole.ROLE_CUSTOMER);
-        user.set_active(true);
+        user.setActive(true);
         user.setApproval_status(ApprovalStatus.PENDING);
 
         UserDTO dto = new UserDTO(user);
