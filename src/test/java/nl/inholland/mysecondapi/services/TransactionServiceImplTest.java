@@ -49,6 +49,7 @@ class TransactionServiceImplTest {
         sender.setId(1L);
         sender.setIban("NL91CEBA0000000001");
         sender.setBalance(new BigDecimal("500.00"));
+        sender.setAccountLimit(new BigDecimal("-100.00"));
 
         receiver = new Account();
         receiver.setId(2L);
@@ -84,6 +85,19 @@ class TransactionServiceImplTest {
     }
 
     @Test
+    void createTransaction_ShouldThrowExceptionWhenAmountIsNull() {
+        transaction.setAmount(null);
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(sender));
+        when(accountRepository.findByIban(anyString())).thenReturn(Optional.of(receiver));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            transactionService.createTransaction(transaction);
+        });
+
+        assertEquals("Transaction amount is required", ex.getMessage());
+    }
+
+    @Test
     void createTransaction_ShouldThrowExceptionWhenInsufficientBalance() {
         sender.setBalance(new BigDecimal("50.00"));
         when(accountRepository.findById(1L)).thenReturn(Optional.of(sender));
@@ -94,6 +108,60 @@ class TransactionServiceImplTest {
         });
 
         assertEquals("Insufficient balance", ex.getMessage());
+    }
+
+    @Test
+    void createTransaction_ShouldThrowExceptionWhenReceiverIbanIsMissing() {
+        transaction.getReciever_account().setIban(null);
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(sender));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            transactionService.createTransaction(transaction);
+        });
+
+        assertEquals("Receiver IBAN is required", ex.getMessage());
+    }
+
+    @Test
+    void createTransaction_InternalTransfer_ShouldThrowWhenInsufficientBalance() {
+        transaction.setTransaction_type(TransactionType.INTERNAL_TRANSFER);
+        sender.setBalance(new BigDecimal("10.00"));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(sender));
+        when(accountRepository.findById(2L)).thenReturn(Optional.of(receiver));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            transactionService.createTransaction(transaction);
+        });
+
+        assertEquals("Insufficient balance", ex.getMessage());
+    }
+
+    @Test
+    void createTransaction_Withdrawal_ShouldSucceed() {
+        transaction.setTransaction_type(TransactionType.WITHDRAWAL);
+        transaction.setReciever_account(null);
+
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(sender));
+        when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
+
+        TransactionDTO result = transactionService.createTransaction(transaction);
+
+        assertEquals(new BigDecimal("100.00"), result.getAmount());
+        verify(accountRepository).save(sender);
+    }
+
+    @Test
+    void createTransaction_Deposit_ShouldThrowIfReceiverNotFound() {
+        transaction.setTransaction_type(TransactionType.DEPOSIT);
+        transaction.setSender_account(null);
+
+        when(accountRepository.findById(2L)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            transactionService.createTransaction(transaction);
+        });
+
+        assertEquals("Receiver account not found", ex.getMessage());
     }
 
     @Test

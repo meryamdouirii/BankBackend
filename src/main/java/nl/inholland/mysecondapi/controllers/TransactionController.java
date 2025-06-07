@@ -95,15 +95,6 @@
             return getTransactionsForAccountInternal(accountId, startDate, endDate, amount, amountFilterType, iban, pageable);
         }
 
-        private static boolean canParseAmountFilterType(String value) {
-            if (value == null) return false;
-            try {
-                AmountFilterType.valueOf(value.toUpperCase());
-                return true;
-            } catch (IllegalArgumentException e) {
-                return false;
-            }
-        }
         private ResponseEntity<Page<TransactionDTO>> getTransactionsForAccountInternal(
                 Long accountId,
                 LocalDateTime startDate,

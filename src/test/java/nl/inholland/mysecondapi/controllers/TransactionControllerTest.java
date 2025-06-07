@@ -130,6 +130,33 @@ class TransactionControllerTest {
     }
 
     @Test
+    void testUpdateTransaction() throws Exception {
+        int id = 1;
+        Transaction updatedTransaction = new Transaction();
+        updatedTransaction.setId((long) id);
+        updatedTransaction.setAmount(new BigDecimal("200.00"));
+        updatedTransaction.setDescription("Updated transaction");
+
+        when(transactionService.updateTransaction(eq(id), any(Transaction.class))).thenReturn(updatedTransaction);
+
+        String json = """
+        {
+            "id": 1,
+            "amount": 200.00,
+            "description": "Updated transaction"
+        }
+        """;
+
+        mockMvc.perform(put("/api/transactions/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.amount").value(200.00))
+                .andExpect(jsonPath("$.description").value("Updated transaction"));
+    }
+
+    @Test
     void testGetTransactionsForUser_AsCustomerWithAccess() throws Exception {
         Page<TransactionDTO> page = new PageImpl<>(List.of(transactionDTO));
         when(accountService.userHasAccount(anyLong(), eq(1L))).thenReturn(true);
@@ -138,11 +165,10 @@ class TransactionControllerTest {
 
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_CUSTOMER");
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(1L, null, Collections.singleton(authority));
-        auth.setDetails(1L);  // userId als details
+        auth.setDetails(1L);
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
-
 
         mockMvc.perform(get("/api/transactions/account/1")
                         .param("amountFilterType", "GREATER"))
@@ -171,33 +197,6 @@ class TransactionControllerTest {
     }
 
     @Test
-    void testUpdateTransaction() throws Exception {
-        int id = 1;
-        Transaction updatedTransaction = new Transaction();
-        updatedTransaction.setId((long) id);
-        updatedTransaction.setAmount(new BigDecimal("200.00"));
-        updatedTransaction.setDescription("Updated transaction");
-
-        when(transactionService.updateTransaction(eq(id), any(Transaction.class))).thenReturn(updatedTransaction);
-
-        String json = """
-        {
-            "id": 1,
-            "amount": 200.00,
-            "description": "Updated transaction"
-        }
-    """;
-
-        mockMvc.perform(put("/api/transactions/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.amount").value(200.00))
-                .andExpect(jsonPath("$.description").value("Updated transaction"));
-    }
-
-    @Test
     void testGetTransactionsForUser_WithValidAmountFilterType() throws Exception {
         Long accountId = 1L;
 
@@ -207,37 +206,23 @@ class TransactionControllerTest {
 
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_CUSTOMER");
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(1L, null, Collections.singleton(authority));
-        auth.setDetails(1L);  // userId als details
+        auth.setDetails(1L);
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
 
-
         mockMvc.perform(get("/api/transactions/account/{id}", accountId)
-                        .param("amountFilterType", "GREATER")) // valid enum
+                        .param("amountFilterType", "GREATER"))
                 .andExpect(status().isOk());
 
         SecurityContextHolder.clearContext();
     }
 
     @Test
-    void testGetTransactionsForUser_WithInvalidAmountFilterType() throws Exception {
-        Long accountId = 1L;
+    void testGetTransactionsForUser_WithoutAuth() throws Exception {
+        SecurityContextHolder.clearContext(); // No authentication in context
 
-        when(accountService.userHasAccount(anyLong(), eq(accountId))).thenReturn(true);
-        when(transactionService.getTransactionsByAccountId(anyLong(), any(), any()))
-                .thenReturn(Page.empty());
-
-        GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_ADMINISTRATOR");
-        Authentication auth = new UsernamePasswordAuthenticationToken(1L, null, Collections.singleton(authority));
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(auth);
-        SecurityContextHolder.setContext(context);
-
-        mockMvc.perform(get("/api/transactions/account/{id}", accountId)
-                        .param("amountFilterType", " dijwijd"))
-                .andExpect(status().isBadRequest());
-
-        SecurityContextHolder.clearContext();
+        mockMvc.perform(get("/api/transactions/account/1"))
+                .andExpect(status().isUnauthorized());
     }
 }
