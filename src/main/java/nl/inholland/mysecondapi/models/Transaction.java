@@ -19,9 +19,9 @@ public class Transaction {
     @Id
     @GeneratedValue
     private Long id;
-    @ManyToOne
+    @ManyToOne(optional = true)
     private Account reciever_account;
-    @ManyToOne
+    @ManyToOne(optional = true)
     private Account sender_account;
     private BigDecimal amount;
     private LocalDateTime dateTime;

@@ -35,16 +35,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<TransactionDTO> getAllTransactions() {
         return transactionRepository.findAll().stream()
-                .map(tx -> new TransactionDTO(
-                        tx.getId(),
-                        tx.getSender_account().getId(),
-                        tx.getReciever_account().getIban(),
-                        tx.getSender_account().getIban(),
-                        tx.getAmount(),
-                        tx.getDateTime(),
-                        tx.getInitiator().getFirstName() + " " + tx.getInitiator().getLastName(),
-                        tx.getDescription()
-                ))
+                .map(tx -> convertToDTO(tx))
                 .toList();
     }
 
@@ -55,46 +46,76 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public TransactionDTO createTransaction(Transaction transaction) {
-        Account sender = accountRepository.findById(transaction.getSender_account().getId())
-                .orElseThrow(() -> new RuntimeException("Sender account not found"));
-
-        Account receiver;
-
-        if (transaction.getTransaction_type() == TransactionType.PAYMENT) {
-            System.out.println(transaction.getReciever_account().getIban());
-
-            String iban = transaction.getReciever_account().getIban();
-            receiver = accountRepository.findByIban(iban)
-                    .orElseThrow(() -> new RuntimeException("Recipient account not found through IBAN"));
-        } else if (transaction.getTransaction_type() == TransactionType.INTERNAL_TRANSFER) {
-            receiver = accountRepository.findById(transaction.getReciever_account().getId())
-                    .orElseThrow(() -> new RuntimeException("Receiver account not found by ID"));
-        } else {
-            throw new RuntimeException("Unknown transaction type");
-        }
-
+        Account sender = null;
+        Account receiver = null;
         BigDecimal amount = transaction.getAmount();
 
-        if (sender.getBalance().compareTo(amount) < 0) {
-            throw new RuntimeException("Insufficient balance");
+        switch (transaction.getTransaction_type()) {
+            case PAYMENT:
+                sender = accountRepository.findById(transaction.getSender_account().getId())
+                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
+
+                String iban = transaction.getReciever_account().getIban();
+                receiver = accountRepository.findByIban(iban)
+                        .orElseThrow(() -> new RuntimeException("Recipient account not found through IBAN"));
+
+                if (sender.getBalance().compareTo(amount) < 0)
+                    throw new RuntimeException("Insufficient balance");
+
+                sender.setBalance(sender.getBalance().subtract(amount));
+                receiver.setBalance(receiver.getBalance().add(amount));
+
+                accountRepository.save(sender);
+                accountRepository.save(receiver);
+                break;
+
+            case INTERNAL_TRANSFER:
+                sender = accountRepository.findById(transaction.getSender_account().getId())
+                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
+                receiver = accountRepository.findById(transaction.getReciever_account().getId())
+                        .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+
+                if (sender.getBalance().compareTo(amount) < 0)
+                    throw new RuntimeException("Insufficient balance");
+
+                sender.setBalance(sender.getBalance().subtract(amount));
+                receiver.setBalance(receiver.getBalance().add(amount));
+
+                accountRepository.save(sender);
+                accountRepository.save(receiver);
+                break;
+
+            case WITHDRAWAL:
+                sender = accountRepository.findById(transaction.getSender_account().getId())
+                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
+
+                if (sender.getBalance().compareTo(amount) < 0)
+                    throw new RuntimeException("Insufficient balance");
+
+                sender.setBalance(sender.getBalance().subtract(amount));
+                accountRepository.save(sender);
+                break;
+
+            case DEPOSIT:
+                receiver = accountRepository.findById(transaction.getReciever_account().getId())
+                        .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+
+                receiver.setBalance(receiver.getBalance().add(amount));
+                accountRepository.save(receiver);
+                break;
+
+            default:
+                throw new RuntimeException("Unknown transaction type");
         }
 
-        // Update balances
-        sender.setBalance(sender.getBalance().subtract(amount));
-        receiver.setBalance(receiver.getBalance().add(amount));
-        accountRepository.save(sender);
-        accountRepository.save(receiver);
-
-        // Build and save transaction
         transaction.setSender_account(sender);
         transaction.setReciever_account(receiver);
         transaction.setDateTime(LocalDateTime.now());
 
         Transaction savedTransaction = transactionRepository.save(transaction);
-
-        // Gebruik altijd deze methode voor output:
         return convertToDTO(savedTransaction);
     }
+
 
 
 
@@ -133,15 +154,29 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private TransactionDTO convertToDTO(Transaction tx) {
+        Long senderAccountId = null;
+        String senderIban = null;
+
+        if (tx.getSender_account() != null) {
+            senderAccountId = tx.getSender_account().getId();
+            senderIban = tx.getSender_account().getIban();
+        }
+
+        String receiverIban = null;
+        if (tx.getReciever_account() != null) {
+            receiverIban = tx.getReciever_account().getIban();
+        }
+
         return new TransactionDTO(
                 tx.getId(),
-                tx.getSender_account().getId(),
-                tx.getReciever_account().getIban(),
-                tx.getSender_account().getIban(),
+                senderAccountId,
+                receiverIban,
+                senderIban,
                 tx.getAmount(),
                 tx.getDateTime(),
                 tx.getInitiator().getFirstName() + " " + tx.getInitiator().getLastName(),
-                tx.getDescription()
+                tx.getDescription(),
+                tx.getTransaction_type()
         );
     }
 }
