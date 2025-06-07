@@ -149,38 +149,32 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public Page<TransactionDTO> getTransactionsByAccountId(Long accountId, TransactionFilterRequest filters,
-            Pageable pageable) {
-        int amountFilterTypeOrdinal = filters.getAmountFilterType() != null
-                ? filters.getAmountFilterType().ordinal()
-                : -1;
-
-        Specification<Transaction> spec = Specification
-                .where(TransactionSpecifications.accountInvolved(accountId))
-                .and(TransactionSpecifications.startDateAfter(filters.getStartDate()))
-                .and(TransactionSpecifications.endDateBefore(filters.getEndDate()))
-                .and(TransactionSpecifications.amountFilter(filters.getAmount(), amountFilterTypeOrdinal))
-                .and(TransactionSpecifications.ibanContains(filters.getIban()));
-
+                                                           Pageable pageable) {
+        Specification<Transaction> spec = buildTransactionSpecification(accountId, filters);
         Page<Transaction> transactions = transactionRepository.findAll(spec, pageable);
-
         return transactions.map(this::convertToDTO);
     }
 
     @Override
     public Page<TransactionDTO> getAllFilteredTransactions(TransactionFilterRequest filters, Pageable pageable) {
-        int amountFilterTypeCode = filters.getAmountFilterType() != null
-                ? filters.getAmountFilterType().getCode()
+        Specification<Transaction> spec = buildTransactionSpecification(null, filters);
+        Page<Transaction> transactions = transactionRepository.findAll(spec, pageable);
+        return transactions.map(this::convertToDTO);
+    }
+
+    private Specification<Transaction> buildTransactionSpecification(Long accountId, TransactionFilterRequest filters) {
+        int amountFilterTypeOrdinal = filters.getAmountFilterType() != null
+                ? filters.getAmountFilterType().ordinal()
                 : -1;
 
         Specification<Transaction> spec = Specification
-                .where(TransactionSpecifications.startDateAfter(filters.getStartDate()))
+                .where(accountId != null ? TransactionSpecifications.accountInvolved(accountId) : null)
+                .and(TransactionSpecifications.startDateAfter(filters.getStartDate()))
                 .and(TransactionSpecifications.endDateBefore(filters.getEndDate()))
-                .and(TransactionSpecifications.amountFilter(filters.getAmount(), amountFilterTypeCode))
+                .and(TransactionSpecifications.amountFilter(filters.getAmount(), amountFilterTypeOrdinal))
                 .and(TransactionSpecifications.ibanContains(filters.getIban()));
 
-        Page<Transaction> transactions = transactionRepository.findAll(spec, pageable);
-
-        return transactions.map(this::convertToDTO);
+        return spec;
     }
 
     private TransactionDTO convertToDTO(Transaction tx) {
