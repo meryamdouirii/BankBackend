@@ -3,6 +3,7 @@ package nl.inholland.mysecondapi.services;
 import nl.inholland.mysecondapi.controllers.TransactionController;
 import nl.inholland.mysecondapi.models.Account;
 import nl.inholland.mysecondapi.models.Transaction;
+import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.dto.TransactionDTO;
 import nl.inholland.mysecondapi.models.dto.TransactionFilterRequest;
 import nl.inholland.mysecondapi.repositories.AccountRepository;
@@ -57,30 +58,36 @@ public class TransactionServiceImpl implements TransactionService {
                 sender = accountRepository.findById(transaction.getSender_account().getId())
                         .orElseThrow(() -> new RuntimeException("Sender account not found"));
 
-                String iban = transaction.getReciever_account().getIban();
-                if (iban == null || iban.isEmpty()) {
-                    throw new RuntimeException("Receiver IBAN is required");
-                }
-
-                receiver = accountRepository.findByIban(iban)
+                receiver = accountRepository.findByIban(transaction.getReciever_account().getIban())
                         .orElseThrow(() -> new RuntimeException("Recipient account not found through IBAN"));
 
-                BigDecimal allowedLimitPayment = sender.getAccountLimit();
-                BigDecimal resultingBalancePayment = sender.getBalance().subtract(amount);
-                if (resultingBalancePayment.compareTo(allowedLimitPayment) < 0) {
-                    throw new RuntimeException("Transfer would exceed account limit");
+                // Fetch sender's user object
+                User senderUser = sender.getOwner();
+
+                // Check if the user has enough daily limit left
+                if (senderUser.getDaily_limit().compareTo(amount) < 0) {
+                    throw new RuntimeException("Transfer exceeds your daily limit");
                 }
 
+                // Check account balance
                 if (sender.getBalance().compareTo(amount) < 0)
                     throw new RuntimeException("Insufficient balance");
 
+                // Check account limit
+                if (sender.getBalance().subtract(amount).compareTo(sender.getAccountLimit()) < 0) {
+                    throw new RuntimeException("Transfer would exceed account limit");
+                }
+
+                // Subtract from balance
                 sender.setBalance(sender.getBalance().subtract(amount));
                 receiver.setBalance(receiver.getBalance().add(amount));
+
+                // Subtract from daily limit
+                senderUser.setDaily_limit(senderUser.getDaily_limit().subtract(amount));
 
                 accountRepository.save(sender);
                 accountRepository.save(receiver);
                 break;
-
             case INTERNAL_TRANSFER:
                 sender = accountRepository.findById(transaction.getSender_account().getId())
                         .orElseThrow(() -> new RuntimeException("Sender account not found"));
