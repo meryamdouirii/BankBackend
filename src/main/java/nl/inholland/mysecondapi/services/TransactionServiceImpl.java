@@ -73,8 +73,10 @@ public class TransactionServiceImpl implements TransactionService {
 
         BigDecimal amount = transaction.getAmount();
 
-        if (sender.getBalance().compareTo(amount) < 0) {
-            throw new RuntimeException("Insufficient balance");
+        BigDecimal allowedLimit = sender.getAccountLimit();
+        BigDecimal resultingBalance = sender.getBalance().subtract(amount);
+        if (resultingBalance.compareTo(allowedLimit) < 0) {
+            throw new RuntimeException("Transfer would exceed account limit");
         }
 
         // Update balances
