@@ -29,7 +29,6 @@ public class User {
     private String phoneNumber;
     private String hashed_password;
     private BigDecimal daily_limit;
-    private BigDecimal transfer_limit;
     private UserRole role;
     private boolean active;
     private ApprovalStatus approval_status;

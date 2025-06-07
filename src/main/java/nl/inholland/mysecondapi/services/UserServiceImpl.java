@@ -18,9 +18,10 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtProvider jwtProvider;
 
-
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, JwtProvider jwtProvider) {
-        this.userRepository = userRepository; this.bCryptPasswordEncoder = bCryptPasswordEncoder; this.jwtProvider = jwtProvider;
+        this.userRepository = userRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.jwtProvider = jwtProvider;
     }
 
     @Override
@@ -53,41 +54,33 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(Long id, User updatedUser) {
         return userRepository.findById(id)
-                .map(existingUser->{
+                .map(existingUser -> {
                     existingUser.setFirstName(updatedUser.getFirstName());
                     existingUser.setLastName(updatedUser.getLastName());
                     existingUser.setDaily_limit(updatedUser.getDaily_limit());
-                    existingUser.setTransfer_limit(updatedUser.getTransfer_limit());
                     existingUser.setAccounts(updatedUser.getAccounts());
                     existingUser.setApproval_status(updatedUser.getApproval_status());
                     existingUser.setEmail(updatedUser.getEmail());
                     existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
                     return userRepository.save(existingUser);
                 })
-                .orElseThrow(() ->new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    //dont actually delete user, set status to inactive
     @Override
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setActive(false);
-
         userRepository.save(user);
     }
 
-
     @Override
     public FindCustomerResponseDTO findByName(FindCustomerRequestDTO request) {
-        // Search for users with matching first or last name
         List<User> users = userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(
-                request.getName(),
-                request.getName()
-        );
+                request.getName(), request.getName());
 
-        // Collect all accounts from matching users
         List<FindCustomerResponseDTO.AccountInfo> accountInfos = users.stream()
                 .flatMap(user -> user.getAccounts().stream()
                         .map(account -> new FindCustomerResponseDTO.AccountInfo(
@@ -95,17 +88,17 @@ public class UserServiceImpl implements UserService {
                                 account.getType().toString(),
                                 account.getOwner().getFirstName() + " " + account.getOwner().getLastName()
                         ))
-                        .limit(10) // Limit to 10 results
+                        .limit(10)
                 )
                 .collect(Collectors.toList());
 
         return new FindCustomerResponseDTO(accountInfos);
     }
+
     @Override
     public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
         User user = userRepository.findUserByEmail(loginRequestDTO.getEmail()).orElse(null);
 
-        // Check user exists and password matches
         if (user == null || !bCryptPasswordEncoder.matches(loginRequestDTO.getPassword(), user.getHashed_password())) {
             throw new IllegalArgumentException("Invalid email or password");
         }
@@ -113,6 +106,4 @@ public class UserServiceImpl implements UserService {
         String token = jwtProvider.createToken(user.getEmail(), user.getRole(), user.getId());
         return new LoginResponseDTO(token);
     }
-
 }
-

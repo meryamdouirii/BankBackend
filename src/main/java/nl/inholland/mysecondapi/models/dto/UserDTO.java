@@ -20,7 +20,6 @@ public class UserDTO {
     private String email;
     private String phoneNumber;
     private BigDecimal daily_limit;
-    private BigDecimal transfer_limit;
     private UserRole role;
     private boolean active;
     private ApprovalStatus approval_status;
@@ -34,7 +33,6 @@ public class UserDTO {
         this.email = user.getEmail();
         this.phoneNumber = user.getPhoneNumber();
         this.daily_limit = user.getDaily_limit();
-        this.transfer_limit = user.getTransfer_limit();
         this.role = user.getRole();
         this.active = user.isActive();
         this.approval_status = user.getApproval_status();
@@ -46,4 +44,3 @@ public class UserDTO {
                 : null;
     }
 }
-
