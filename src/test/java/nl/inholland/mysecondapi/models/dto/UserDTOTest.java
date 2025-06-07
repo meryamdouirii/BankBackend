@@ -21,7 +21,6 @@ class UserDTOTest {
         user.setEmail("jane@example.com");
         user.setPhoneNumber("0612345678");
         user.setDaily_limit(BigDecimal.valueOf(500));
-        user.setTransfer_limit(BigDecimal.valueOf(1000));
         user.setRole(UserRole.ROLE_CUSTOMER);
         user.setActive(true);
         user.setApproval_status(ApprovalStatus.PENDING);

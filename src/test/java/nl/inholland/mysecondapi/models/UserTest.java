@@ -26,7 +26,6 @@ class UserTest {
         user.setPhoneNumber("0612345678");
         user.setHashed_password("hashedpass");
         user.setDaily_limit(new BigDecimal("2000"));
-        user.setTransfer_limit(new BigDecimal("1000"));
         user.setRole(UserRole.ROLE_CUSTOMER);
         user.setActive(true);
         user.setApproval_status(ApprovalStatus.PENDING);
@@ -49,7 +48,6 @@ class UserTest {
         assertEquals("0612345678", user.getPhoneNumber());
         assertEquals("hashedpass", user.getHashed_password());
         assertEquals(new BigDecimal("2000"), user.getDaily_limit());
-        assertEquals(new BigDecimal("1000"), user.getTransfer_limit());
         assertEquals(UserRole.ROLE_CUSTOMER, user.getRole());
         assertTrue(user.isActive());
         assertEquals(ApprovalStatus.PENDING, user.getApproval_status());

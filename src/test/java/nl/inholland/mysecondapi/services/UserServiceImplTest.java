@@ -140,7 +140,6 @@ class UserServiceImplTest {
         updatedUser.setEmail("jane@example.com");
         updatedUser.setPhoneNumber("123456789");
         updatedUser.setDaily_limit(BigDecimal.valueOf(1000.0));
-        updatedUser.setTransfer_limit(BigDecimal.valueOf(5000.0));
         updatedUser.setAccounts(new ArrayList<>());
         updatedUser.setApproval_status(ApprovalStatus.ACCEPTED);
 
