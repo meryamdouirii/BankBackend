@@ -13,8 +13,7 @@ class UserRequestDTOTest {
         UserRequestDTO dto = new UserRequestDTO(
                 BigDecimal.valueOf(1000),
                 BigDecimal.valueOf(2000),
-                BigDecimal.valueOf(500),
-                BigDecimal.valueOf(300)
+                BigDecimal.valueOf(500)
         );
 
         assertEquals(BigDecimal.valueOf(2000), dto.getAbsoluteLimitSavings());
