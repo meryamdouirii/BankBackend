@@ -58,20 +58,14 @@ public class TransactionServiceImpl implements TransactionService {
         Account sender = accountRepository.findById(transaction.getSender_account().getId())
                 .orElseThrow(() -> new RuntimeException("Sender account not found"));
 
-        Account receiver;
 
-        if (transaction.getTransaction_type() == TransactionType.PAYMENT) {
-            System.out.println(transaction.getReciever_account().getIban());
-
-            String iban = transaction.getReciever_account().getIban();
-            receiver = accountRepository.findByIban(iban)
-                    .orElseThrow(() -> new RuntimeException("Recipient account not found through IBAN"));
-        } else if (transaction.getTransaction_type() == TransactionType.INTERNAL_TRANSFER) {
-            receiver = accountRepository.findById(transaction.getReciever_account().getId())
-                    .orElseThrow(() -> new RuntimeException("Receiver account not found by ID"));
-        } else {
-            throw new RuntimeException("Unknown transaction type");
+        String receiverIban = transaction.getReciever_account().getIban();
+        if (receiverIban == null || receiverIban.isEmpty()) {
+            throw new RuntimeException("Receiver IBAN is required");
         }
+
+        Account receiver = accountRepository.findByIban(receiverIban)
+                .orElseThrow(() -> new RuntimeException("Receiver account not found through IBAN"));
 
         BigDecimal amount = transaction.getAmount();
 
@@ -87,16 +81,14 @@ public class TransactionServiceImpl implements TransactionService {
         accountRepository.save(sender);
         accountRepository.save(receiver);
 
-        // Build and save transaction
         transaction.setSender_account(sender);
         transaction.setReciever_account(receiver);
         transaction.setDateTime(LocalDateTime.now());
 
         Transaction savedTransaction = transactionRepository.save(transaction);
-
-        // Gebruik altijd deze methode voor output:
         return convertToDTO(savedTransaction);
     }
+
 
 
 
