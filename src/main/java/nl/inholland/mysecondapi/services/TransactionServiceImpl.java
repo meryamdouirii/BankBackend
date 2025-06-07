@@ -48,6 +48,9 @@ public class TransactionServiceImpl implements TransactionService {
         Account sender = null;
         Account receiver = null;
         BigDecimal amount = transaction.getAmount();
+        if (amount == null) {
+            throw new RuntimeException("Transaction amount is required");
+        }
 
         switch (transaction.getTransaction_type()) {
             case PAYMENT:

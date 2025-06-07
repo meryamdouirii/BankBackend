@@ -51,7 +51,7 @@ class UserDetailsServiceJpaTest {
     void loadUserByUsername_ShouldThrowException_WhenUserNotFound() {
         when(userRepository.findUserByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
-        assertThrows(NullPointerException.class, () ->
+        assertThrows(UsernameNotFoundException.class, () ->
                 userDetailsServiceJpa.loadUserByUsername("unknown@example.com"));
     }
 }
