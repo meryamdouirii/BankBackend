@@ -3,6 +3,7 @@ package nl.inholland.mysecondapi.controllers;
 import nl.inholland.mysecondapi.models.Transaction;
 import nl.inholland.mysecondapi.models.dto.TransactionDTO;
 import nl.inholland.mysecondapi.models.dto.TransactionFilterRequest;
+import nl.inholland.mysecondapi.models.enums.TransactionType;
 import nl.inholland.mysecondapi.services.AccountService;
 import nl.inholland.mysecondapi.services.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +68,8 @@ class TransactionControllerTest {
                 new BigDecimal("100.00"),
                 transaction.getDateTime(),
                 "John Doe",
-                "Test transaction"
+                "Test transaction",
+                TransactionType.PAYMENT
         );
     }
 
