@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import nl.inholland.mysecondapi.models.Account;
 import nl.inholland.mysecondapi.models.User;
+import nl.inholland.mysecondapi.models.enums.TransactionType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ public class TransactionDTO {
     private LocalDateTime dateTime;
     private String initiatorName;
     private String description;
+    private TransactionType transactionType;
 
     }
 

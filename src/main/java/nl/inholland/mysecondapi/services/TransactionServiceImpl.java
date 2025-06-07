@@ -15,7 +15,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import nl.inholland.mysecondapi.models.enums.TransactionType;
 
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,16 +34,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<TransactionDTO> getAllTransactions() {
         return transactionRepository.findAll().stream()
-                .map(tx -> new TransactionDTO(
-                        tx.getId(),
-                        tx.getSender_account().getId(),
-                        tx.getReciever_account().getIban(),
-                        tx.getSender_account().getIban(),
-                        tx.getAmount(),
-                        tx.getDateTime(),
-                        tx.getInitiator().getFirstName() + " " + tx.getInitiator().getLastName(),
-                        tx.getDescription()
-                ))
+                .map(tx -> convertToDTO(tx))
                 .toList();
     }
 
@@ -55,31 +45,83 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public TransactionDTO createTransaction(Transaction transaction) {
-        Account sender = accountRepository.findById(transaction.getSender_account().getId())
-                .orElseThrow(() -> new RuntimeException("Sender account not found"));
-
-
-        String receiverIban = transaction.getReciever_account().getIban();
-        if (receiverIban == null || receiverIban.isEmpty()) {
-            throw new RuntimeException("Receiver IBAN is required");
-        }
-
-        Account receiver = accountRepository.findByIban(receiverIban)
-                .orElseThrow(() -> new RuntimeException("Receiver account not found through IBAN"));
-
+        Account sender = null;
+        Account receiver = null;
         BigDecimal amount = transaction.getAmount();
 
-        BigDecimal allowedLimit = sender.getAccountLimit();
-        BigDecimal resultingBalance = sender.getBalance().subtract(amount);
-        if (resultingBalance.compareTo(allowedLimit) < 0) {
-            throw new RuntimeException("Transfer would exceed account limit");
-        }
+        switch (transaction.getTransaction_type()) {
+            case PAYMENT:
+                sender = accountRepository.findById(transaction.getSender_account().getId())
+                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
 
-        // Update balances
-        sender.setBalance(sender.getBalance().subtract(amount));
-        receiver.setBalance(receiver.getBalance().add(amount));
-        accountRepository.save(sender);
-        accountRepository.save(receiver);
+                String iban = transaction.getReciever_account().getIban();
+                if (iban == null || iban.isEmpty()) {
+                    throw new RuntimeException("Receiver IBAN is required");
+                }
+
+                receiver = accountRepository.findByIban(iban)
+                        .orElseThrow(() -> new RuntimeException("Recipient account not found through IBAN"));
+
+                BigDecimal allowedLimitPayment = sender.getAccountLimit();
+                BigDecimal resultingBalancePayment = sender.getBalance().subtract(amount);
+                if (resultingBalancePayment.compareTo(allowedLimitPayment) < 0) {
+                    throw new RuntimeException("Transfer would exceed account limit");
+                }
+
+                if (sender.getBalance().compareTo(amount) < 0)
+                    throw new RuntimeException("Insufficient balance");
+
+                sender.setBalance(sender.getBalance().subtract(amount));
+                receiver.setBalance(receiver.getBalance().add(amount));
+
+                accountRepository.save(sender);
+                accountRepository.save(receiver);
+                break;
+
+            case INTERNAL_TRANSFER:
+                sender = accountRepository.findById(transaction.getSender_account().getId())
+                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
+                receiver = accountRepository.findById(transaction.getReciever_account().getId())
+                        .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+
+                BigDecimal allowedLimitInternal = sender.getAccountLimit();
+                BigDecimal resultingBalanceInternal = sender.getBalance().subtract(amount);
+                if (resultingBalanceInternal.compareTo(allowedLimitInternal) < 0) {
+                    throw new RuntimeException("Transfer would exceed account limit");
+                }
+
+                if (sender.getBalance().compareTo(amount) < 0)
+                    throw new RuntimeException("Insufficient balance");
+
+                sender.setBalance(sender.getBalance().subtract(amount));
+                receiver.setBalance(receiver.getBalance().add(amount));
+
+                accountRepository.save(sender);
+                accountRepository.save(receiver);
+                break;
+
+            case WITHDRAWAL:
+                sender = accountRepository.findById(transaction.getSender_account().getId())
+                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
+
+                if (sender.getBalance().compareTo(amount) < 0)
+                    throw new RuntimeException("Insufficient balance");
+
+                sender.setBalance(sender.getBalance().subtract(amount));
+                accountRepository.save(sender);
+                break;
+
+            case DEPOSIT:
+                receiver = accountRepository.findById(transaction.getReciever_account().getId())
+                        .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+
+                receiver.setBalance(receiver.getBalance().add(amount));
+                accountRepository.save(receiver);
+                break;
+
+            default:
+                throw new RuntimeException("Unknown transaction type");
+        }
 
         transaction.setSender_account(sender);
         transaction.setReciever_account(receiver);
@@ -88,9 +130,6 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction savedTransaction = transactionRepository.save(transaction);
         return convertToDTO(savedTransaction);
     }
-
-
-
 
     @Override
     public Transaction updateTransaction(int id, Transaction updatedTransaction) {
@@ -109,7 +148,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Page<TransactionDTO> getTransactionsByAccountId(Long accountId, TransactionFilterRequest filters, Pageable pageable) {
+    public Page<TransactionDTO> getTransactionsByAccountId(Long accountId, TransactionFilterRequest filters,
+            Pageable pageable) {
         int amountFilterTypeOrdinal = filters.getAmountFilterType() != null
                 ? filters.getAmountFilterType().ordinal()
                 : -1;
@@ -127,15 +167,28 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private TransactionDTO convertToDTO(Transaction tx) {
+        Long senderAccountId = null;
+        String senderIban = null;
+
+        if (tx.getSender_account() != null) {
+            senderAccountId = tx.getSender_account().getId();
+            senderIban = tx.getSender_account().getIban();
+        }
+
+        String receiverIban = null;
+        if (tx.getReciever_account() != null) {
+            receiverIban = tx.getReciever_account().getIban();
+        }
+
         return new TransactionDTO(
                 tx.getId(),
-                tx.getSender_account().getId(),
-                tx.getReciever_account().getIban(),
-                tx.getSender_account().getIban(),
+                senderAccountId,
+                receiverIban,
+                senderIban,
                 tx.getAmount(),
                 tx.getDateTime(),
                 tx.getInitiator().getFirstName() + " " + tx.getInitiator().getLastName(),
-                tx.getDescription()
-        );
+                tx.getDescription(),
+                tx.getTransaction_type());
     }
 }
