@@ -92,11 +92,7 @@
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
                 }
             }
-            if (!canParseAmountFilterType(amountFilterType)){
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-            }
-
-            return getTransactionsForAccountInternal(accountId, startDate, endDate, amount, AmountFilterType.valueOf(amountFilterType.toUpperCase()), iban, pageable);
+            return getTransactionsForAccountInternal(accountId, startDate, endDate, amount, amountFilterType, iban, pageable);
         }
 
         private static boolean canParseAmountFilterType(String value) {
@@ -108,22 +104,27 @@
                 return false;
             }
         }
-
         private ResponseEntity<Page<TransactionDTO>> getTransactionsForAccountInternal(
                 Long accountId,
                 LocalDateTime startDate,
                 LocalDateTime endDate,
                 BigDecimal amount,
-                AmountFilterType amountFilterType,
+                String amountFilterType,
                 String ibanContains,
                 Pageable pageable
         ) {
-
-            TransactionFilterRequest filters = new TransactionFilterRequest(
+            AmountFilterType filterType = null;
+            if (amountFilterType != null) {
+                try {
+                    filterType = AmountFilterType.valueOf(amountFilterType.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid amountFilterType: " + amountFilterType);
+                }
+            }        TransactionFilterRequest filters = new TransactionFilterRequest(
                     startDate,
                     endDate,
                     amount,
-                    amountFilterType,
+                    filterType,
                     ibanContains
             );
 
