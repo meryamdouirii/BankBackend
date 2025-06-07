@@ -17,5 +17,5 @@ public interface TransactionService {
     Transaction updateTransaction(int id, Transaction transaction);
     void deleteTransaction(int id);
     Page<TransactionDTO> getTransactionsByAccountId(Long accountId, TransactionFilterRequest filters, Pageable pageable);
-
+    Page<TransactionDTO> getAllFilteredTransactions(TransactionFilterRequest filters, Pageable pageable);
     }

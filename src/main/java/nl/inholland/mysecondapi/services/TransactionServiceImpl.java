@@ -166,6 +166,23 @@ public class TransactionServiceImpl implements TransactionService {
         return transactions.map(this::convertToDTO);
     }
 
+    @Override
+    public Page<TransactionDTO> getAllFilteredTransactions(TransactionFilterRequest filters, Pageable pageable) {
+        int amountFilterTypeCode = filters.getAmountFilterType() != null
+                ? filters.getAmountFilterType().getCode()
+                : -1;
+
+        Specification<Transaction> spec = Specification
+                .where(TransactionSpecifications.startDateAfter(filters.getStartDate()))
+                .and(TransactionSpecifications.endDateBefore(filters.getEndDate()))
+                .and(TransactionSpecifications.amountFilter(filters.getAmount(), amountFilterTypeCode))
+                .and(TransactionSpecifications.ibanContains(filters.getIban()));
+
+        Page<Transaction> transactions = transactionRepository.findAll(spec, pageable);
+
+        return transactions.map(this::convertToDTO);
+    }
+
     private TransactionDTO convertToDTO(Transaction tx) {
         Long senderAccountId = null;
         String senderIban = null;

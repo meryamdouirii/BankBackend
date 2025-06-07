@@ -95,6 +95,28 @@
             return getTransactionsForAccountInternal(accountId, startDate, endDate, amount, amountFilterType, iban, pageable);
         }
 
+        @GetMapping("/all")
+        public ResponseEntity<Page<TransactionDTO>> getAllFiltered(
+                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+                @RequestParam(required = false) BigDecimal amount,
+                @RequestParam(required = false) String amountFilterType,
+                @RequestParam(required = false) String iban,
+                @PageableDefault(size = 20, sort = "dateTime", direction = Sort.Direction.DESC) Pageable pageable
+        )  {
+            AmountFilterType filterType = null;
+            if (amountFilterType != null) {
+                try {
+                    filterType = AmountFilterType.valueOf(amountFilterType.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid amountFilterType: " + amountFilterType);
+                }
+            }
+            TransactionFilterRequest filter = new TransactionFilterRequest(startDate, endDate, amount, filterType, iban);
+            return ResponseEntity.ok(transactionService.getAllFilteredTransactions(filter, pageable));
+
+        }
+
         private static boolean canParseAmountFilterType(String value) {
             if (value == null) return false;
             try {
