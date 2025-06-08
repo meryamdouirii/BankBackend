@@ -36,7 +36,7 @@ public class JwtProvider {
         long duration = switch (role) {
             case ROLE_ADMINISTRATOR -> 2 * 60 * 60 * 1000; // 2 hours
             case ROLE_EMPLOYEE -> 1 * 60 * 60 * 1000;       // 1 hour
-            default -> 2 * 60 * 1000;                      // 30 minutes
+            default -> 30 * 60 * 1000;                      // 30 minutes
         };
 
         Date now = new Date();
