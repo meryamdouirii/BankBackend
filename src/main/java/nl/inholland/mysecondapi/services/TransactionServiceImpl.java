@@ -6,6 +6,7 @@ import nl.inholland.mysecondapi.models.Transaction;
 import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.dto.TransactionDTO;
 import nl.inholland.mysecondapi.models.dto.TransactionFilterRequest;
+import nl.inholland.mysecondapi.models.enums.AccountStatus;
 import nl.inholland.mysecondapi.models.enums.UserRole;
 import nl.inholland.mysecondapi.repositories.AccountRepository;
 import nl.inholland.mysecondapi.repositories.TransactionRepository;
@@ -80,7 +81,6 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionDTO createTransaction(Transaction transaction) {
         validateTransactionAmount(transaction.getAmount());
-
         switch (transaction.getTransaction_type()) {
             case PAYMENT:
                 return processPaymentTransaction(transaction);
@@ -110,7 +110,6 @@ public class TransactionServiceImpl implements TransactionService {
         validateAccountLimit(sender, transaction.getAmount());
         performTransfer(sender, receiver, transaction.getAmount());
         senderUser.setDaily_limit(senderUser.getDaily_limit().subtract(transaction.getAmount()));
-
         return saveAndConvertTransaction(transaction, sender, receiver);
     }
 
@@ -131,12 +130,13 @@ public class TransactionServiceImpl implements TransactionService {
     private TransactionDTO processWithdrawal(Transaction transaction) {
         Account sender = accountRepository.findById(transaction.getSender_account().getId())
                 .orElseThrow(() -> new RuntimeException("Sender account not found"));
-
+        if (sender.getStatus() == AccountStatus.CLOSED) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account is closed");
+        }
         User senderUser = sender.getOwner();
         User initiator = transaction.getInitiator();
         boolean isEmployee = initiator.getRole() == UserRole.ROLE_EMPLOYEE || initiator.getRole() == UserRole.ROLE_ADMINISTRATOR;
         boolean isOwner = initiator.getId().equals(senderUser.getId());
-
         if (!isEmployee && !isOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to withdraw from this account");
         }
@@ -153,7 +153,9 @@ public class TransactionServiceImpl implements TransactionService {
     private TransactionDTO processDeposit(Transaction transaction) {
         Account receiver = accountRepository.findById(transaction.getReciever_account().getId())
                 .orElseThrow(() -> new RuntimeException("Receiver account not found"));
-
+        if (receiver.getStatus() == AccountStatus.CLOSED) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account is closed");
+        }
         receiver.setBalance(receiver.getBalance().add(transaction.getAmount()));
         accountRepository.save(receiver);
 
