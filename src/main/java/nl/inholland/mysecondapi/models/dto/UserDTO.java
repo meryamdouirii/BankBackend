@@ -2,7 +2,6 @@ package nl.inholland.mysecondapi.models.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import nl.inholland.mysecondapi.models.Account;
 import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.enums.ApprovalStatus;
 import nl.inholland.mysecondapi.models.enums.UserRole;
@@ -21,9 +20,8 @@ public class UserDTO {
     private String email;
     private String phoneNumber;
     private BigDecimal daily_limit;
-    private BigDecimal transfer_limit;
     private UserRole role;
-    private boolean is_active;
+    private boolean active;
     private ApprovalStatus approval_status;
     private List<AccountDTO> accounts;
 
@@ -35,9 +33,8 @@ public class UserDTO {
         this.email = user.getEmail();
         this.phoneNumber = user.getPhoneNumber();
         this.daily_limit = user.getDaily_limit();
-        this.transfer_limit = user.getTransfer_limit();
         this.role = user.getRole();
-        this.is_active = user.is_active();
+        this.active = user.isActive();
         this.approval_status = user.getApproval_status();
 
         this.accounts = user.getAccounts() != null
@@ -47,4 +44,3 @@ public class UserDTO {
                 : null;
     }
 }
-

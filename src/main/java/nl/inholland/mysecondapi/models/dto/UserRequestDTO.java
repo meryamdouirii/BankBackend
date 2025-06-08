@@ -15,6 +15,5 @@ public class UserRequestDTO {
     private BigDecimal absoluteLimitCheckings;
     private BigDecimal absoluteLimitSavings;
     private BigDecimal dailyLimit;
-    private BigDecimal transferLimit;
 }
 

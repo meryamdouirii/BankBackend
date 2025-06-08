@@ -11,12 +11,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TransactionService {
-    List<Transaction> getAllTransactions();
+    List<TransactionDTO> getAllTransactions();
     Optional<Transaction> getTransactionById(int id);
-    Transaction createTransaction(Transaction transaction);
+    TransactionDTO createTransaction(Transaction transaction);
     Transaction updateTransaction(int id, Transaction transaction);
     void deleteTransaction(int id);
-    Page<TransactionDTO> getTransactionsByUser(Long id, TransactionFilterRequest filters, Pageable pageable);
     Page<TransactionDTO> getTransactionsByAccountId(Long accountId, TransactionFilterRequest filters, Pageable pageable);
-
+    Page<TransactionDTO> getAllFilteredTransactions(TransactionFilterRequest filters, Pageable pageable);
     }
