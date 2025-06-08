@@ -52,6 +52,9 @@ public class TransactionServiceImpl implements TransactionService {
         if (amount == null) {
             throw new RuntimeException("Transaction amount is required");
         }
+        if (amount.compareTo(BigDecimal.valueOf(0)) < 0) {
+            throw new RuntimeException("Transaction amount cannot be negative!");
+        }
 
         switch (transaction.getTransaction_type()) {
             case PAYMENT:
