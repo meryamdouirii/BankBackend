@@ -36,137 +36,6 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionDTO> getAllTransactions() {
-        return transactionRepository.findAll().stream()
-                .map(tx -> convertToDTO(tx))
-                .toList();
-    }
-
-    @Override
-    public Optional<Transaction> getTransactionById(int id) {
-        return transactionRepository.findById((long) id);
-    }
-
-    @Override
-    public TransactionDTO createTransaction(Transaction transaction) {
-        Account sender = null;
-        Account receiver = null;
-        BigDecimal amount = transaction.getAmount();
-        if (amount == null) {
-            throw new RuntimeException("Transaction amount is required");
-        }
-        if (amount.compareTo(BigDecimal.valueOf(0)) < 0) {
-            throw new RuntimeException("Transaction amount cannot be negative!");
-        }
-
-        switch (transaction.getTransaction_type()) {
-            case PAYMENT:
-                sender = accountRepository.findById(transaction.getSender_account().getId())
-                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
-
-                receiver = accountRepository.findByIban(transaction.getReciever_account().getIban())
-                        .orElseThrow(() -> new RuntimeException("Recipient account not found through IBAN"));
-
-                // Fetch sender's user object
-                User senderUser = sender.getOwner();
-
-                // Check if the user has enough daily limit left
-                if (senderUser.getDaily_limit().compareTo(amount) < 0) {
-                    throw new RuntimeException("Transfer exceeds your daily limit");
-                }
-
-                // Check account balance
-                if (sender.getBalance().compareTo(amount) < 0)
-                    throw new RuntimeException("Insufficient balance");
-
-                // Check account limit
-                if (sender.getBalance().subtract(amount).compareTo(sender.getAccountLimit()) < 0) {
-                    throw new RuntimeException("Transfer would exceed account limit");
-                }
-
-                // Subtract from balance
-                sender.setBalance(sender.getBalance().subtract(amount));
-                receiver.setBalance(receiver.getBalance().add(amount));
-
-                // Subtract from daily limit
-                senderUser.setDaily_limit(senderUser.getDaily_limit().subtract(amount));
-
-                accountRepository.save(sender);
-                accountRepository.save(receiver);
-                break;
-            case INTERNAL_TRANSFER:
-                sender = accountRepository.findById(transaction.getSender_account().getId())
-                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
-                receiver = accountRepository.findById(transaction.getReciever_account().getId())
-                        .orElseThrow(() -> new RuntimeException("Receiver account not found"));
-
-                BigDecimal allowedLimitInternal = sender.getAccountLimit();
-                BigDecimal resultingBalanceInternal = sender.getBalance().subtract(amount);
-                if (resultingBalanceInternal.compareTo(allowedLimitInternal) < 0) {
-                    throw new RuntimeException("Transfer would exceed account limit");
-                }
-
-                if (sender.getBalance().compareTo(amount) < 0)
-                    throw new RuntimeException("Insufficient balance");
-
-                sender.setBalance(sender.getBalance().subtract(amount));
-                receiver.setBalance(receiver.getBalance().add(amount));
-
-                accountRepository.save(sender);
-                accountRepository.save(receiver);
-                break;
-
-            case WITHDRAWAL:
-                sender = accountRepository.findById(transaction.getSender_account().getId())
-                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
-
-                User senderUserWithdrawal = sender.getOwner(); // Owner of the account
-                User initiator = transaction.getInitiator();   // The user performing the action
-
-                // Check if the initiator is allowed to perform withdrawal
-                boolean isEmployee = initiator.getRole() == UserRole.ROLE_EMPLOYEE || initiator.getRole() == UserRole.ROLE_ADMINISTRATOR;
-                boolean isOwner = initiator.getId().equals(senderUserWithdrawal.getId());
-
-                if (!isEmployee && !isOwner) {
-                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to withdraw from this account");
-                }
-                if (senderUserWithdrawal.getDaily_limit().compareTo(amount) < 0) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Withdrawal exceeds your daily limit");
-                }
-                if (sender.getBalance().compareTo(amount) < 0) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient balance");
-                }
-                if (sender.getBalance().subtract(amount).compareTo(sender.getAccountLimit()) < 0) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Withdrawal would exceed account limit");
-                }
-
-                sender.setBalance(sender.getBalance().subtract(amount));
-                senderUserWithdrawal.setDaily_limit(senderUserWithdrawal.getDaily_limit().subtract(amount));
-
-                accountRepository.save(sender);
-                break;
-
-            case DEPOSIT:
-                receiver = accountRepository.findById(transaction.getReciever_account().getId())
-                        .orElseThrow(() -> new RuntimeException("Receiver account not found"));
-
-                receiver.setBalance(receiver.getBalance().add(amount));
-                accountRepository.save(receiver);
-                break;
-
-            default:
-                throw new RuntimeException("Unknown transaction type");
-        }
-
-        transaction.setSender_account(sender);
-        transaction.setReciever_account(receiver);
-        transaction.setDateTime(LocalDateTime.now());
-
-        Transaction savedTransaction = transactionRepository.save(transaction);
-        return convertToDTO(savedTransaction);
-    }
-
-    @Override
     public Transaction updateTransaction(int id, Transaction updatedTransaction) {
         return transactionRepository.findById((long) id)
                 .map(existing -> {
@@ -196,6 +65,251 @@ public class TransactionServiceImpl implements TransactionService {
         Page<Transaction> transactions = transactionRepository.findAll(spec, pageable);
         return transactions.map(this::convertToDTO);
     }
+    @Override
+    public List<TransactionDTO> getAllTransactions() {
+        return transactionRepository.findAll().stream()
+                .map(tx -> convertToDTO(tx))
+                .toList();
+    }
+
+    @Override
+    public Optional<Transaction> getTransactionById(int id) {
+        return transactionRepository.findById((long) id);
+    }
+
+    @Override
+    public TransactionDTO createTransaction(Transaction transaction) {
+        validateTransactionAmount(transaction.getAmount());
+
+        switch (transaction.getTransaction_type()) {
+            case PAYMENT:
+                return processPaymentTransaction(transaction);
+            case INTERNAL_TRANSFER:
+                return processInternalTransfer(transaction);
+            case WITHDRAWAL:
+                return processWithdrawal(transaction);
+            case DEPOSIT:
+                return processDeposit(transaction);
+            default:
+                throw new RuntimeException("Unknown transaction type");
+        }
+    }
+
+    private TransactionDTO processPaymentTransaction(Transaction transaction) {
+        Account sender = accountRepository.findById(transaction.getSender_account().getId())
+                .orElseThrow(() -> new RuntimeException("Sender account not found"));
+        Account receiver = accountRepository.findByIban(transaction.getReciever_account().getIban())
+                .orElseThrow(() -> new RuntimeException("Recipient account not found through IBAN"));
+
+        User senderUser = sender.getOwner();
+        validateDailyLimit(senderUser, transaction.getAmount());
+        validateAccountLimit(sender, transaction.getAmount());
+        performTransfer(sender, receiver, transaction.getAmount());
+        senderUser.setDaily_limit(senderUser.getDaily_limit().subtract(transaction.getAmount()));
+
+        return saveAndConvertTransaction(transaction, sender, receiver);
+    }
+
+    private TransactionDTO processInternalTransfer(Transaction transaction) {
+        Account sender = accountRepository.findById(transaction.getSender_account().getId())
+                .orElseThrow(() -> new RuntimeException("Sender account not found"));
+        Account receiver = accountRepository.findById(transaction.getReciever_account().getId())
+                .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+
+        validateAccountLimit(sender, transaction.getAmount());
+
+        performTransfer(sender, receiver, transaction.getAmount());
+
+        return saveAndConvertTransaction(transaction, sender, receiver);
+    }
+
+    private TransactionDTO processWithdrawal(Transaction transaction) {
+        Account sender = accountRepository.findById(transaction.getSender_account().getId())
+                .orElseThrow(() -> new RuntimeException("Sender account not found"));
+
+        User senderUser = sender.getOwner();
+        User initiator = transaction.getInitiator();
+        boolean isEmployee = initiator.getRole() == UserRole.ROLE_EMPLOYEE || initiator.getRole() == UserRole.ROLE_ADMINISTRATOR;
+        boolean isOwner = initiator.getId().equals(senderUser.getId());
+
+        if (!isEmployee && !isOwner) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to withdraw from this account");
+        }
+        validateDailyLimit(senderUser, transaction.getAmount());
+        validateAccountLimit(sender, transaction.getAmount());
+
+        sender.setBalance(sender.getBalance().subtract(transaction.getAmount()));
+        senderUser.setDaily_limit(senderUser.getDaily_limit().subtract(transaction.getAmount()));
+        accountRepository.save(sender);
+
+        return saveAndConvertTransaction(transaction, sender, null);
+    }
+
+    private TransactionDTO processDeposit(Transaction transaction) {
+        Account receiver = accountRepository.findById(transaction.getReciever_account().getId())
+                .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+
+        receiver.setBalance(receiver.getBalance().add(transaction.getAmount()));
+        accountRepository.save(receiver);
+
+        return saveAndConvertTransaction(transaction, null, receiver);
+    }
+
+    private void validateTransactionAmount(BigDecimal amount) {
+        if (amount == null) {
+            throw new RuntimeException("Transaction amount is required");
+        }
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Transaction amount must be positive");
+        }
+    }
+
+    private void validateDailyLimit(User user, BigDecimal amount) {
+        if (user.getDaily_limit().compareTo(amount) < 0) {
+            throw new RuntimeException("Transfer exceeds your daily limit");
+        }
+    }
+
+    private void validateAccountLimit(Account account, BigDecimal amount) {
+        BigDecimal potentialBalance = account.getBalance().subtract(amount);
+        if (potentialBalance.compareTo(account.getAccountLimit().negate()) < 0) {
+            throw new RuntimeException("Transaction would exceed account limit");
+        }
+    }
+
+    private void performTransfer(Account sender, Account receiver, BigDecimal amount) {
+        sender.setBalance(sender.getBalance().subtract(amount));
+        receiver.setBalance(receiver.getBalance().add(amount));
+        accountRepository.save(sender);
+        accountRepository.save(receiver);
+    }
+
+    private TransactionDTO saveAndConvertTransaction(Transaction transaction, Account sender, Account receiver) {
+        transaction.setSender_account(sender);
+        transaction.setReciever_account(receiver);
+        transaction.setDateTime(LocalDateTime.now());
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        return convertToDTO(savedTransaction);
+    }
+//    @Override
+//    public TransactionDTO createTransaction(Transaction transaction) {
+//        Account sender = null;
+//        Account receiver = null;
+//        BigDecimal amount = transaction.getAmount();
+//        if (amount == null) {
+//            throw new RuntimeException("Transaction amount is required");
+//        }
+//        if (amount.compareTo(BigDecimal.valueOf(0)) < 0) {
+//            throw new RuntimeException("Transaction amount cannot be negative!");
+//        }
+//
+//        switch (transaction.getTransaction_type()) {
+//            case PAYMENT:
+//                sender = accountRepository.findById(transaction.getSender_account().getId())
+//                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
+//
+//                receiver = accountRepository.findByIban(transaction.getReciever_account().getIban())
+//                        .orElseThrow(() -> new RuntimeException("Recipient account not found through IBAN"));
+//
+//                // Fetch sender's user object
+//                User senderUser = sender.getOwner();
+//
+//                // Check if the user has enough daily limit left
+//                if (senderUser.getDaily_limit().compareTo(amount) < 0) {
+//                    throw new RuntimeException("Transfer exceeds your daily limit");
+//                }
+//
+//                // Check account balance
+//                if (sender.getBalance().compareTo(amount) < 0)
+//                    throw new RuntimeException("Insufficient balance");
+//
+//                // Check account limit
+//                if (sender.getBalance().subtract(amount).compareTo(sender.getAccountLimit()) < 0) {
+//                    throw new RuntimeException("Transfer would exceed account limit");
+//                }
+//
+//                // Subtract from balance
+//                sender.setBalance(sender.getBalance().subtract(amount));
+//                receiver.setBalance(receiver.getBalance().add(amount));
+//
+//                // Subtract from daily limit
+//                senderUser.setDaily_limit(senderUser.getDaily_limit().subtract(amount));
+//
+//                accountRepository.save(sender);
+//                accountRepository.save(receiver);
+//                break;
+//            case INTERNAL_TRANSFER:
+//                sender = accountRepository.findById(transaction.getSender_account().getId())
+//                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
+//                receiver = accountRepository.findById(transaction.getReciever_account().getId())
+//                        .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+//
+//                BigDecimal allowedLimitInternal = sender.getAccountLimit();
+//                BigDecimal resultingBalanceInternal = sender.getBalance().subtract(amount);
+//                if (resultingBalanceInternal.compareTo(allowedLimitInternal) < 0) {
+//                    throw new RuntimeException("Transfer would exceed account limit");
+//                }
+//
+//                if (sender.getBalance().compareTo(amount) < 0)
+//                    throw new RuntimeException("Insufficient balance");
+//
+//                sender.setBalance(sender.getBalance().subtract(amount));
+//                receiver.setBalance(receiver.getBalance().add(amount));
+//
+//                accountRepository.save(sender);
+//                accountRepository.save(receiver);
+//                break;
+//
+//            case WITHDRAWAL:
+//                sender = accountRepository.findById(transaction.getSender_account().getId())
+//                        .orElseThrow(() -> new RuntimeException("Sender account not found"));
+//
+//                User senderUserWithdrawal = sender.getOwner(); // Owner of the account
+//                User initiator = transaction.getInitiator();   // The user performing the action
+//
+//                // Check if the initiator is allowed to perform withdrawal
+//                boolean isEmployee = initiator.getRole() == UserRole.ROLE_EMPLOYEE || initiator.getRole() == UserRole.ROLE_ADMINISTRATOR;
+//                boolean isOwner = initiator.getId().equals(senderUserWithdrawal.getId());
+//
+//                if (!isEmployee && !isOwner) {
+//                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to withdraw from this account");
+//                }
+//                if (senderUserWithdrawal.getDaily_limit().compareTo(amount) < 0) {
+//                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Withdrawal exceeds your daily limit");
+//                }
+//                if (sender.getBalance().compareTo(amount) < 0) {
+//                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient balance");
+//                }
+//                if (sender.getBalance().subtract(amount).compareTo(sender.getAccountLimit()) < 0) {
+//                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Withdrawal would exceed account limit");
+//                }
+//
+//                sender.setBalance(sender.getBalance().subtract(amount));
+//                senderUserWithdrawal.setDaily_limit(senderUserWithdrawal.getDaily_limit().subtract(amount));
+//
+//                accountRepository.save(sender);
+//                break;
+//
+//            case DEPOSIT:
+//                receiver = accountRepository.findById(transaction.getReciever_account().getId())
+//                        .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+//
+//                receiver.setBalance(receiver.getBalance().add(amount));
+//                accountRepository.save(receiver);
+//                break;
+//
+//            default:
+//                throw new RuntimeException("Unknown transaction type");
+//        }
+//
+//        transaction.setSender_account(sender);
+//        transaction.setReciever_account(receiver);
+//        transaction.setDateTime(LocalDateTime.now());
+//
+//        Transaction savedTransaction = transactionRepository.save(transaction);
+//        return convertToDTO(savedTransaction);
+//    }
+
 
     private Specification<Transaction> buildTransactionSpecification(Long accountId, TransactionFilterRequest filters) {
         int amountFilterTypeOrdinal = filters.getAmountFilterType() != null

@@ -39,7 +39,7 @@ public class MyApplicationRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        BigDecimal dailyLimit = BigDecimal.valueOf(1000);
+        BigDecimal dailyLimit = BigDecimal.valueOf(4000);
 
         User mainUser = createMainUser(dailyLimit);
 
@@ -112,7 +112,7 @@ public class MyApplicationRunner implements ApplicationRunner {
 
         Account account = new Account(
                 null, owner, iban,
-                BigDecimal.valueOf(1000), BigDecimal.valueOf(0),
+                BigDecimal.valueOf(1000), BigDecimal.valueOf(400),
                 AccountType.CHECKING, AccountStatus.ACTIVE,
                 LocalDateTime.now(), LocalDateTime.now(), null, null
         );
