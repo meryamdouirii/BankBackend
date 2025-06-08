@@ -6,6 +6,7 @@ import nl.inholland.mysecondapi.models.Transaction;
 import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.dto.TransactionDTO;
 import nl.inholland.mysecondapi.models.dto.TransactionFilterRequest;
+import nl.inholland.mysecondapi.models.enums.UserRole;
 import nl.inholland.mysecondapi.repositories.AccountRepository;
 import nl.inholland.mysecondapi.repositories.TransactionRepository;
 import nl.inholland.mysecondapi.repositories.UserRepository;
@@ -13,8 +14,10 @@ import nl.inholland.mysecondapi.specifications.TransactionSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable; // Correct import
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import nl.inholland.mysecondapi.models.enums.TransactionType;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -117,28 +120,27 @@ public class TransactionServiceImpl implements TransactionService {
                 sender = accountRepository.findById(transaction.getSender_account().getId())
                         .orElseThrow(() -> new RuntimeException("Sender account not found"));
 
-                // Fetch sender's user object
-                User senderUserWithdrawal = sender.getOwner();
+                User senderUserWithdrawal = sender.getOwner(); // Owner of the account
+                User initiator = transaction.getInitiator();   // The user performing the action
 
-                // Check if the user has enough daily limit left
+                // Check if the initiator is allowed to perform withdrawal
+                boolean isEmployee = initiator.getRole() == UserRole.ROLE_EMPLOYEE || initiator.getRole() == UserRole.ROLE_ADMINISTRATOR;
+                boolean isOwner = initiator.getId().equals(senderUserWithdrawal.getId());
+
+                if (!isEmployee && !isOwner) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to withdraw from this account");
+                }
                 if (senderUserWithdrawal.getDaily_limit().compareTo(amount) < 0) {
-                    throw new RuntimeException("Withdrawal exceeds your daily limit");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Withdrawal exceeds your daily limit");
                 }
-
-                // Check account balance
                 if (sender.getBalance().compareTo(amount) < 0) {
-                    throw new RuntimeException("Insufficient balance");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient balance");
                 }
-
-                // Check account limit
                 if (sender.getBalance().subtract(amount).compareTo(sender.getAccountLimit()) < 0) {
-                    throw new RuntimeException("Withdrawal would exceed account limit");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Withdrawal would exceed account limit");
                 }
 
-                // Subtract from balance
                 sender.setBalance(sender.getBalance().subtract(amount));
-
-                // Subtract from daily limit
                 senderUserWithdrawal.setDaily_limit(senderUserWithdrawal.getDaily_limit().subtract(amount));
 
                 accountRepository.save(sender);
