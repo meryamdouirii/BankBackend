@@ -33,12 +33,20 @@ public class JwtProvider {
     }
 
     public String createToken(String email, UserRole role, Long id) {
-        Date expiration = new Date(System.currentTimeMillis() + 3600 * 1000);
+        long duration = switch (role) {
+            case ROLE_ADMINISTRATOR -> 2 * 60 * 60 * 1000; // 2 hours
+            case ROLE_EMPLOYEE -> 1 * 60 * 60 * 1000;       // 1 hour
+            default -> 2 * 60 * 1000;                      // 30 minutes
+        };
+
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + duration);
+
         return Jwts.builder()
                 .subject(email)
                 .claim("auth", role.name())
                 .claim("id", id)
-                .issuedAt(new Date())
+                .issuedAt(now)
                 .expiration(expiration)
                 .signWith(key)
                 .compact();
