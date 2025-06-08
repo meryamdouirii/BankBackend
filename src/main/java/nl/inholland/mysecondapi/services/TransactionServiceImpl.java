@@ -172,8 +172,15 @@ public class TransactionServiceImpl implements TransactionService {
 
     private void validateAccountLimit(Account account, BigDecimal amount) {
         BigDecimal potentialBalance = account.getBalance().subtract(amount);
-        if (potentialBalance.compareTo(account.getAccountLimit().negate()) < 0) {
-            throw new RuntimeException("Transaction would exceed account limit");
+        // If account limit is positive, use it as minimum required balance
+        if (account.getAccountLimit().compareTo(BigDecimal.ZERO) > 0) {
+            if (potentialBalance.compareTo(account.getAccountLimit()) < 0) {
+                throw new RuntimeException("Transaction would bring balance below required minimum");
+            }
+        } else {
+            if (potentialBalance.compareTo(account.getAccountLimit()) < 0) {
+                throw new RuntimeException("Transaction would exceed overdraft limit");
+            }
         }
     }
 
