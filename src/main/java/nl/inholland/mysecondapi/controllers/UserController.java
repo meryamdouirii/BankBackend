@@ -8,6 +8,7 @@ import nl.inholland.mysecondapi.models.enums.UserRole;
 import nl.inholland.mysecondapi.services.UserService;
 import nl.inholland.mysecondapi.services.AccountService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -25,6 +26,7 @@ public class UserController {
         this.accountService = accountService;
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or hasRole('ROLE_EMPLOYEE')")
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
@@ -62,6 +64,7 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(id, user));
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or hasRole('ROLE_EMPLOYEE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
@@ -73,6 +76,7 @@ public class UserController {
         return userService.login(loginRequestDTO);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or hasRole('ROLE_EMPLOYEE')")
     @PostMapping("/deny/{id}")
     public ResponseEntity<User> denyUser(@PathVariable Long id) {
         return this.userService.getUserEntityById(id).map(user -> {
@@ -82,6 +86,7 @@ public class UserController {
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or hasRole('ROLE_EMPLOYEE')")
     @PostMapping("/approve/{id}")
     public ResponseEntity<User> handleUserRequest(@RequestBody UserRequestDTO request, @PathVariable Long id) {
         System.out.println("Received request: " + request);
