@@ -101,6 +101,10 @@ public class TransactionServiceImpl implements TransactionService {
         Account receiver = accountRepository.findByIban(transaction.getReciever_account().getIban())
                 .orElseThrow(() -> new RuntimeException("Recipient account not found through IBAN"));
 
+        if (sender.getId().equals(receiver.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot transfer money to the same account.");
+        }
+        
         User senderUser = sender.getOwner();
         validateDailyLimit(senderUser, transaction.getAmount());
         validateAccountLimit(sender, transaction.getAmount());
@@ -114,6 +118,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new RuntimeException("Sender account not found"));
         Account receiver = accountRepository.findById(transaction.getReciever_account().getId())
                 .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+
 
         validateAccountLimit(sender, transaction.getAmount());
 
