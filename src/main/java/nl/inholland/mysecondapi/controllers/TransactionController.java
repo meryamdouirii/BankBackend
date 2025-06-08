@@ -13,6 +13,7 @@
     import org.springframework.format.annotation.DateTimeFormat;
     import org.springframework.http.HttpStatus;
     import org.springframework.http.ResponseEntity;
+    import org.springframework.security.access.prepost.PreAuthorize;
     import org.springframework.security.core.Authentication;
     import org.springframework.security.core.context.SecurityContextHolder;
     import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,7 @@
             this.accountService = accountService;
         }
 
+        @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or hasRole('ROLE_EMPLOYEE')")
         @GetMapping
         public ResponseEntity<List<TransactionDTO>> getAll() {
             return ResponseEntity.ok(transactionService.getAllTransactions());
@@ -95,6 +97,7 @@
             return getTransactionsForAccountInternal(accountId, startDate, endDate, amount, amountFilterType, iban, pageable);
         }
 
+        @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or hasRole('ROLE_EMPLOYEE')")
         @GetMapping("/all")
         public ResponseEntity<Page<TransactionDTO>> getAllFiltered(
                 @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
