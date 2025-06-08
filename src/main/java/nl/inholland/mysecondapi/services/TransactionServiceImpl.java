@@ -114,10 +114,30 @@ public class TransactionServiceImpl implements TransactionService {
                 sender = accountRepository.findById(transaction.getSender_account().getId())
                         .orElseThrow(() -> new RuntimeException("Sender account not found"));
 
-                if (sender.getBalance().compareTo(amount) < 0)
-                    throw new RuntimeException("Insufficient balance");
+                // Fetch sender's user object
+                User senderUserWithdrawal = sender.getOwner();
 
+                // Check if the user has enough daily limit left
+                if (senderUserWithdrawal.getDaily_limit().compareTo(amount) < 0) {
+                    throw new RuntimeException("Withdrawal exceeds your daily limit");
+                }
+
+                // Check account balance
+                if (sender.getBalance().compareTo(amount) < 0) {
+                    throw new RuntimeException("Insufficient balance");
+                }
+
+                // Check account limit
+                if (sender.getBalance().subtract(amount).compareTo(sender.getAccountLimit()) < 0) {
+                    throw new RuntimeException("Withdrawal would exceed account limit");
+                }
+
+                // Subtract from balance
                 sender.setBalance(sender.getBalance().subtract(amount));
+
+                // Subtract from daily limit
+                senderUserWithdrawal.setDaily_limit(senderUserWithdrawal.getDaily_limit().subtract(amount));
+
                 accountRepository.save(sender);
                 break;
 
