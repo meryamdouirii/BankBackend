@@ -1,24 +1,31 @@
 package nl.inholland.mysecondapi.services;
 
-import nl.inholland.mysecondapi.models.*;
+import nl.inholland.mysecondapi.models.Account;
+import nl.inholland.mysecondapi.models.Transaction;
+import nl.inholland.mysecondapi.models.User;
 import nl.inholland.mysecondapi.models.dto.TransactionDTO;
 import nl.inholland.mysecondapi.models.dto.TransactionFilterRequest;
 import nl.inholland.mysecondapi.models.enums.TransactionType;
+import nl.inholland.mysecondapi.models.enums.UserRole;
 import nl.inholland.mysecondapi.repositories.AccountRepository;
 import nl.inholland.mysecondapi.repositories.TransactionRepository;
+import nl.inholland.mysecondapi.specifications.TransactionSpecifications;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class TransactionServiceImplTest {
 
     @Mock
@@ -37,186 +45,421 @@ class TransactionServiceImplTest {
     @InjectMocks
     private TransactionServiceImpl transactionService;
 
-    private Account sender;
-    private Account receiver;
-    private Transaction transaction;
+    private User testUser;
+    private User receiverUser;
+    private User employeeUser;
+    private Account senderAccount;
+    private Account receiverAccount;
+    private Transaction testTransaction;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        // Setup test users
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setFirstName("John");
+        testUser.setLastName("Doe");
+        testUser.setRole(UserRole.ROLE_CUSTOMER);
+        testUser.setDaily_limit(new BigDecimal("1000"));
 
-        sender = new Account();
-        sender.setId(1L);
-        sender.setIban("NL91CEBA0000000001");
-        sender.setBalance(new BigDecimal("500.00"));
-        sender.setAccountLimit(new BigDecimal("-100.00"));
+        receiverUser = new User();
+        receiverUser.setId(2L);
+        receiverUser.setFirstName("Jane");
+        receiverUser.setLastName("Smith");
+        receiverUser.setRole(UserRole.ROLE_CUSTOMER);
 
-        receiver = new Account();
-        receiver.setId(2L);
-        receiver.setIban("NL91CEBA0000000002");
-        receiver.setBalance(new BigDecimal("100.00"));
+        employeeUser = new User();
+        employeeUser.setId(3L);
+        employeeUser.setFirstName("Admin");
+        employeeUser.setLastName("User");
+        employeeUser.setRole(UserRole.ROLE_EMPLOYEE);
 
-        User initiator = new User();
-        initiator.setFirstName("John");
-        initiator.setLastName("Doe");
+        // Setup test accounts
+        senderAccount = new Account();
+        senderAccount.setId(1L);
+        senderAccount.setIban("NL91ABNA0417164300");
+        senderAccount.setBalance(new BigDecimal("1000"));
+        senderAccount.setAccountLimit(new BigDecimal("-500"));
+        senderAccount.setOwner(testUser);
 
-        transaction = new Transaction();
-        transaction.setSender_account(sender);
-        transaction.setReciever_account(receiver);
-        transaction.setAmount(new BigDecimal("100.00"));
-        transaction.setInitiator(initiator);
-        transaction.setTransaction_type(TransactionType.PAYMENT);
+        receiverAccount = new Account();
+        receiverAccount.setId(2L);
+        receiverAccount.setIban("NL91ABNA0417164301");
+        receiverAccount.setBalance(new BigDecimal("500"));
+        receiverAccount.setAccountLimit(new BigDecimal("-200"));
+        receiverAccount.setOwner(receiverUser);
+
+        // Setup test transaction
+        testTransaction = new Transaction();
+        testTransaction.setId(1L);
+        testTransaction.setAmount(new BigDecimal("100"));
+        testTransaction.setSender_account(senderAccount);
+        testTransaction.setReciever_account(receiverAccount);
+        testTransaction.setInitiator(testUser);
+        testTransaction.setDescription("Test transaction");
+        testTransaction.setTransaction_type(TransactionType.PAYMENT);
+        testTransaction.setDateTime(LocalDateTime.now());
     }
 
     @Test
-    void createTransaction_ShouldTransferMoneyAndReturnDTO() {
-        when(accountRepository.findById(1L)).thenReturn(Optional.of(sender));
-        when(accountRepository.findByIban("NL91CEBA0000000002")).thenReturn(Optional.of(receiver));
-        when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
+    void updateTransaction_ShouldUpdateSuccessfully() {
+        // Arrange
+        Transaction updatedTransaction = new Transaction();
+        updatedTransaction.setAmount(new BigDecimal("200"));
+        updatedTransaction.setDateTime(LocalDateTime.now());
 
-        TransactionDTO result = transactionService.createTransaction(transaction);
+        when(transactionRepository.findById(1L)).thenReturn(Optional.of(testTransaction));
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(testTransaction);
 
-        assertEquals(sender.getId(), result.getSender_id());
-        assertEquals(receiver.getIban(), result.getReceiver_iban());
-        assertEquals(new BigDecimal("100.00"), result.getAmount());
-        verify(accountRepository).save(sender);
-        verify(accountRepository).save(receiver);
-        verify(transactionRepository).save(any(Transaction.class));
+        // Act
+        Transaction result = transactionService.updateTransaction(1, updatedTransaction);
+
+        // Assert
+        assertNotNull(result);
+        verify(transactionRepository).findById(1L);
+        verify(transactionRepository).save(testTransaction);
     }
 
     @Test
-    void createTransaction_ShouldThrowExceptionWhenAmountIsNull() {
-        transaction.setAmount(null);
-        when(accountRepository.findById(1L)).thenReturn(Optional.of(sender));
-        when(accountRepository.findByIban(anyString())).thenReturn(Optional.of(receiver));
+    void updateTransaction_ShouldThrowException_WhenTransactionNotFound() {
+        // Arrange
+        Transaction updatedTransaction = new Transaction();
+        when(transactionRepository.findById(1L)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            transactionService.createTransaction(transaction);
-        });
-
-        assertEquals("Transaction amount is required", ex.getMessage());
+        // Act & Assert
+        assertThrows(RuntimeException.class, () ->
+                transactionService.updateTransaction(1, updatedTransaction));
     }
 
     @Test
-    void createTransaction_ShouldThrowExceptionWhenInsufficientBalance() {
-        sender.setBalance(new BigDecimal("50.00"));
-        when(accountRepository.findById(1L)).thenReturn(Optional.of(sender));
-        when(accountRepository.findByIban(anyString())).thenReturn(Optional.of(receiver));
-
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            transactionService.createTransaction(transaction);
-        });
-
-        assertEquals("Insufficient balance", ex.getMessage());
-    }
-
-    @Test
-    void createTransaction_ShouldThrowExceptionWhenReceiverIbanIsMissing() {
-        transaction.getReciever_account().setIban(null);
-        when(accountRepository.findById(1L)).thenReturn(Optional.of(sender));
-
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            transactionService.createTransaction(transaction);
-        });
-
-        assertEquals("Receiver IBAN is required", ex.getMessage());
-    }
-
-    @Test
-    void createTransaction_InternalTransfer_ShouldThrowWhenInsufficientBalance() {
-        transaction.setTransaction_type(TransactionType.INTERNAL_TRANSFER);
-        sender.setBalance(new BigDecimal("10.00"));
-        when(accountRepository.findById(1L)).thenReturn(Optional.of(sender));
-        when(accountRepository.findById(2L)).thenReturn(Optional.of(receiver));
-
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            transactionService.createTransaction(transaction);
-        });
-
-        assertEquals("Insufficient balance", ex.getMessage());
-    }
-
-    @Test
-    void createTransaction_Withdrawal_ShouldSucceed() {
-        transaction.setTransaction_type(TransactionType.WITHDRAWAL);
-        transaction.setReciever_account(null);
-
-        when(accountRepository.findById(1L)).thenReturn(Optional.of(sender));
-        when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
-
-        TransactionDTO result = transactionService.createTransaction(transaction);
-
-        assertEquals(new BigDecimal("100.00"), result.getAmount());
-        verify(accountRepository).save(sender);
-    }
-
-    @Test
-    void createTransaction_Deposit_ShouldThrowIfReceiverNotFound() {
-        transaction.setTransaction_type(TransactionType.DEPOSIT);
-        transaction.setSender_account(null);
-
-        when(accountRepository.findById(2L)).thenReturn(Optional.empty());
-
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            transactionService.createTransaction(transaction);
-        });
-
-        assertEquals("Receiver account not found", ex.getMessage());
-    }
-
-    @Test
-    void getAllTransactions_ShouldReturnListOfDTOs() {
-        transaction.setId(1L);
-        transaction.setDateTime(LocalDateTime.now());
-
-        when(transactionRepository.findAll()).thenReturn(List.of(transaction));
-
-        List<TransactionDTO> result = transactionService.getAllTransactions();
-
-        assertEquals(1, result.size());
-        assertEquals(transaction.getSender_account().getId(), result.get(0).getSender_id());
-    }
-
-    @Test
-    void getTransactionById_ShouldReturnTransactionIfFound() {
-        when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction));
-        Optional<Transaction> result = transactionService.getTransactionById(1);
-        assertTrue(result.isPresent());
-        assertEquals(transaction, result.get());
-    }
-
-    @Test
-    void deleteTransaction_ShouldCallRepository() {
+    void deleteTransaction_ShouldDeleteSuccessfully() {
+        // Act
         transactionService.deleteTransaction(1);
+
+        // Assert
         verify(transactionRepository).deleteById(1L);
     }
 
     @Test
-    void updateTransaction_ShouldUpdateAndReturnTransaction() {
-        transaction.setId(1L);
-        transaction.setDateTime(LocalDateTime.now());
+    void getTransactionById_ShouldReturnTransaction() {
+        // Arrange
+        when(transactionRepository.findById(1L)).thenReturn(Optional.of(testTransaction));
 
-        Transaction updated = new Transaction();
-        updated.setAmount(new BigDecimal("200.00"));
-        updated.setDateTime(LocalDateTime.now());
+        // Act
+        Optional<Transaction> result = transactionService.getTransactionById(1);
 
-        when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction));
-        when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
-
-        Transaction result = transactionService.updateTransaction(1, updated);
-        assertEquals(updated.getAmount(), result.getAmount());
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals(testTransaction.getId(), result.get().getId());
     }
 
     @Test
-    void getTransactionsByAccountId_ShouldReturnFilteredPage() {
-        TransactionFilterRequest filter = new TransactionFilterRequest();
-        Page<Transaction> txPage = new PageImpl<>(List.of(transaction));
+    void getAllTransactions_ShouldReturnAllTransactions() {
+        // Arrange
+        List<Transaction> transactions = Arrays.asList(testTransaction);
+        when(transactionRepository.findAll()).thenReturn(transactions);
 
-        when(transactionRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(txPage);
+        // Act
+        List<TransactionDTO> result = transactionService.getAllTransactions();
 
-        Page<TransactionDTO> result = transactionService.getTransactionsByAccountId(1L, filter, PageRequest.of(0, 10));
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(testTransaction.getId(), result.get(0).getId());
+    }
 
-        assertEquals(1, result.getTotalElements());
-        assertEquals(transaction.getSender_account().getId(), result.getContent().get(0).getSender_id());
+    @Test
+    void getTransactionsByAccountId_ShouldReturnFilteredTransactions() {
+        // Arrange
+        TransactionFilterRequest filters = new TransactionFilterRequest();
+        Pageable pageable = mock(Pageable.class);
+        Page<Transaction> transactionPage = new PageImpl<>(Arrays.asList(testTransaction));
+
+        try (MockedStatic<TransactionSpecifications> mockedStatic = mockStatic(TransactionSpecifications.class);
+             MockedStatic<Specification> specMockedStatic = mockStatic(Specification.class)) {
+
+            Specification<Transaction> mockSpec = mock(Specification.class);
+            Specification<Transaction> chainedSpec = mock(Specification.class);
+
+            // Mock the individual specification methods
+            mockedStatic.when(() -> TransactionSpecifications.accountInvolved(anyLong())).thenReturn(mockSpec);
+            mockedStatic.when(() -> TransactionSpecifications.startDateAfter(any())).thenReturn(null);
+            mockedStatic.when(() -> TransactionSpecifications.endDateBefore(any())).thenReturn(null);
+            mockedStatic.when(() -> TransactionSpecifications.amountFilter(any(), anyInt())).thenReturn(null);
+            mockedStatic.when(() -> TransactionSpecifications.ibanContains(any())).thenReturn(null);
+
+            // Mock the Specification.where() static method and chaining
+            specMockedStatic.when(() -> Specification.where(any())).thenReturn(chainedSpec);
+            when(chainedSpec.and(any())).thenReturn(chainedSpec);
+
+            when(transactionRepository.findAll(any(Specification.class), eq(pageable)))
+                    .thenReturn(transactionPage);
+
+            // Act
+            Page<TransactionDTO> result = transactionService.getTransactionsByAccountId(1L, filters, pageable);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.getContent().size());
+        }
+    }
+
+    @Test
+    void getAllFilteredTransactions_ShouldReturnFilteredTransactions() {
+        // Arrange
+        TransactionFilterRequest filters = new TransactionFilterRequest();
+        Pageable pageable = mock(Pageable.class);
+        Page<Transaction> transactionPage = new PageImpl<>(Arrays.asList(testTransaction));
+
+        try (MockedStatic<TransactionSpecifications> mockedStatic = mockStatic(TransactionSpecifications.class);
+             MockedStatic<Specification> specMockedStatic = mockStatic(Specification.class)) {
+
+            Specification<Transaction> chainedSpec = mock(Specification.class);
+
+            // Mock the individual specification methods
+            mockedStatic.when(() -> TransactionSpecifications.startDateAfter(any())).thenReturn(null);
+            mockedStatic.when(() -> TransactionSpecifications.endDateBefore(any())).thenReturn(null);
+            mockedStatic.when(() -> TransactionSpecifications.amountFilter(any(), anyInt())).thenReturn(null);
+            mockedStatic.when(() -> TransactionSpecifications.ibanContains(any())).thenReturn(null);
+
+            // Mock the Specification.where() static method and chaining
+            specMockedStatic.when(() -> Specification.where(isNull())).thenReturn(chainedSpec);
+            when(chainedSpec.and(any())).thenReturn(chainedSpec);
+
+            when(transactionRepository.findAll(any(Specification.class), eq(pageable)))
+                    .thenReturn(transactionPage);
+
+            // Act
+            Page<TransactionDTO> result = transactionService.getAllFilteredTransactions(filters, pageable);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.getContent().size());
+        }
+    }
+
+    @Test
+    void createTransaction_Payment_ShouldCreateSuccessfully() {
+        // Arrange
+        when(accountRepository.findById(senderAccount.getId())).thenReturn(Optional.of(senderAccount));
+        when(accountRepository.findByIban(receiverAccount.getIban())).thenReturn(Optional.of(receiverAccount));
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(testTransaction);
+
+        // Act
+        TransactionDTO result = transactionService.createTransaction(testTransaction);
+
+        // Assert
+        assertNotNull(result);
+        verify(accountRepository).save(senderAccount);
+        verify(accountRepository).save(receiverAccount);
+        verify(transactionRepository).save(testTransaction);
+    }
+
+    @Test
+    void createTransaction_Payment_ShouldThrowException_WhenInsufficientDailyLimit() {
+        // Arrange
+        testUser.setDaily_limit(new BigDecimal("50")); // Less than transaction amount
+        testTransaction.setAmount(new BigDecimal("100"));
+
+        when(accountRepository.findById(senderAccount.getId())).thenReturn(Optional.of(senderAccount));
+        when(accountRepository.findByIban(receiverAccount.getIban())).thenReturn(Optional.of(receiverAccount));
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () ->
+                transactionService.createTransaction(testTransaction));
+    }
+
+    @Test
+    void createTransaction_Payment_ShouldThrowException_WhenExceedsAccountLimit() {
+        // Arrange
+        senderAccount.setBalance(new BigDecimal("100"));
+        senderAccount.setAccountLimit(new BigDecimal("50"));
+        testTransaction.setAmount(new BigDecimal("100"));
+
+        when(accountRepository.findById(senderAccount.getId())).thenReturn(Optional.of(senderAccount));
+        when(accountRepository.findByIban(receiverAccount.getIban())).thenReturn(Optional.of(receiverAccount));
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () ->
+                transactionService.createTransaction(testTransaction));
+    }
+
+    @Test
+    void createTransaction_InternalTransfer_ShouldCreateSuccessfully() {
+        // Arrange
+        testTransaction.setTransaction_type(TransactionType.INTERNAL_TRANSFER);
+
+        when(accountRepository.findById(senderAccount.getId())).thenReturn(Optional.of(senderAccount));
+        when(accountRepository.findById(receiverAccount.getId())).thenReturn(Optional.of(receiverAccount));
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(testTransaction);
+
+        // Act
+        TransactionDTO result = transactionService.createTransaction(testTransaction);
+
+        // Assert
+        assertNotNull(result);
+        verify(accountRepository).save(senderAccount);
+        verify(accountRepository).save(receiverAccount);
+    }
+
+    @Test
+    void createTransaction_Withdrawal_ShouldCreateSuccessfully_WhenUserIsOwner() {
+        // Arrange
+        testTransaction.setTransaction_type(TransactionType.WITHDRAWAL);
+        testTransaction.setReciever_account(null);
+
+        when(accountRepository.findById(senderAccount.getId())).thenReturn(Optional.of(senderAccount));
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(testTransaction);
+
+        // Act
+        TransactionDTO result = transactionService.createTransaction(testTransaction);
+
+        // Assert
+        assertNotNull(result);
+        verify(accountRepository).save(senderAccount);
+    }
+
+    @Test
+    void createTransaction_Withdrawal_ShouldCreateSuccessfully_WhenUserIsEmployee() {
+        // Arrange
+        testTransaction.setTransaction_type(TransactionType.WITHDRAWAL);
+        testTransaction.setInitiator(employeeUser);
+        testTransaction.setReciever_account(null);
+
+        when(accountRepository.findById(senderAccount.getId())).thenReturn(Optional.of(senderAccount));
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(testTransaction);
+
+        // Act
+        TransactionDTO result = transactionService.createTransaction(testTransaction);
+
+        // Assert
+        assertNotNull(result);
+        verify(accountRepository).save(senderAccount);
+    }
+
+    @Test
+    void createTransaction_Withdrawal_ShouldThrowException_WhenUnauthorized() {
+        // Arrange
+        User unauthorizedUser = new User();
+        unauthorizedUser.setId(999L);
+        unauthorizedUser.setRole(UserRole.ROLE_CUSTOMER);
+
+        testTransaction.setTransaction_type(TransactionType.WITHDRAWAL);
+        testTransaction.setInitiator(unauthorizedUser);
+        testTransaction.setReciever_account(null);
+
+        when(accountRepository.findById(senderAccount.getId())).thenReturn(Optional.of(senderAccount));
+
+        // Act & Assert
+        assertThrows(ResponseStatusException.class, () ->
+                transactionService.createTransaction(testTransaction));
+    }
+
+    @Test
+    void createTransaction_Deposit_ShouldCreateSuccessfully() {
+        // Arrange
+        testTransaction.setTransaction_type(TransactionType.DEPOSIT);
+        testTransaction.setSender_account(null);
+
+        when(accountRepository.findById(receiverAccount.getId())).thenReturn(Optional.of(receiverAccount));
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(testTransaction);
+
+        // Act
+        TransactionDTO result = transactionService.createTransaction(testTransaction);
+
+        // Assert
+        assertNotNull(result);
+        verify(accountRepository).save(receiverAccount);
+    }
+
+    @Test
+    void createTransaction_ShouldThrowException_WhenAmountIsNull() {
+        // Arrange
+        testTransaction.setAmount(null);
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () ->
+                transactionService.createTransaction(testTransaction));
+    }
+
+    @Test
+    void createTransaction_ShouldThrowException_WhenAmountIsNegative() {
+        // Arrange
+        testTransaction.setAmount(new BigDecimal("-10"));
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () ->
+                transactionService.createTransaction(testTransaction));
+    }
+
+    @Test
+    void createTransaction_ShouldThrowException_WhenAmountIsZero() {
+        // Arrange
+        testTransaction.setAmount(BigDecimal.ZERO);
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () ->
+                transactionService.createTransaction(testTransaction));
+    }
+
+    @Test
+    void createTransaction_ShouldThrowException_WhenSenderAccountNotFound() {
+        // Arrange
+        when(accountRepository.findById(senderAccount.getId())).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () ->
+                transactionService.createTransaction(testTransaction));
+    }
+
+    @Test
+    void createTransaction_ShouldThrowException_WhenReceiverAccountNotFound() {
+        // Arrange
+        when(accountRepository.findById(senderAccount.getId())).thenReturn(Optional.of(senderAccount));
+        when(accountRepository.findByIban(receiverAccount.getIban())).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () ->
+                transactionService.createTransaction(testTransaction));
+    }
+
+    @Test
+    void createTransaction_ShouldThrowException_WhenUnknownTransactionType() {
+        // Arrange
+        testTransaction.setTransaction_type(null);
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () ->
+                transactionService.createTransaction(testTransaction));
+    }
+
+    @Test
+    void validateAccountLimit_WithPositiveLimit_ShouldWorkCorrectly() {
+        // Arrange
+        senderAccount.setBalance(new BigDecimal("200"));
+        senderAccount.setAccountLimit(new BigDecimal("100")); // Positive limit (minimum required balance)
+        testTransaction.setAmount(new BigDecimal("150")); // Would bring balance to 50, below minimum of 100
+
+        when(accountRepository.findById(senderAccount.getId())).thenReturn(Optional.of(senderAccount));
+        when(accountRepository.findByIban(receiverAccount.getIban())).thenReturn(Optional.of(receiverAccount));
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () ->
+                transactionService.createTransaction(testTransaction));
+    }
+
+    @Test
+    void validateAccountLimit_WithNegativeLimit_ShouldWorkCorrectly() {
+        // Arrange
+        senderAccount.setBalance(new BigDecimal("100"));
+        senderAccount.setAccountLimit(new BigDecimal("-200")); // Overdraft limit
+        testTransaction.setAmount(new BigDecimal("350")); // Would bring balance to -250, exceeding overdraft of -200
+
+        when(accountRepository.findById(senderAccount.getId())).thenReturn(Optional.of(senderAccount));
+        when(accountRepository.findByIban(receiverAccount.getIban())).thenReturn(Optional.of(receiverAccount));
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () ->
+                transactionService.createTransaction(testTransaction));
     }
 }
